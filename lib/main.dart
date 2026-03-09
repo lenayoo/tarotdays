@@ -234,6 +234,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
   TarotCard? _yesCard;
   TarotCard? _noCard;
   bool _isResultVisible = false;
+  int? _firstSelectedCardIndex;
 
   @override
   void initState() {
@@ -286,10 +287,28 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
     });
   }
 
-  void _showResult() {
+  void _onDeckCardTap(int index) {
+    if (_firstSelectedCardIndex == null) {
+      setState(() {
+        _firstSelectedCardIndex = index;
+      });
+      return;
+    }
+
+    if (_firstSelectedCardIndex == index) {
+      return;
+    }
+
     _pickCards();
     setState(() {
       _isResultVisible = true;
+    });
+  }
+
+  void _resetToFirstStep() {
+    setState(() {
+      _isResultVisible = false;
+      _firstSelectedCardIndex = null;
     });
   }
 
@@ -304,7 +323,21 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
     if (!_isResultVisible) {
       return Scaffold(
         appBar: AppBar(title: const Text('1. 명확한 답 (Yes/No)')),
-        body: _TarotDeckSelection(onCardTap: _showResult),
+        body: _TarotDeckSelection(
+          title:
+              _firstSelectedCardIndex == null
+                  ? '하나의 답을 생각하고 카드를 골라주세요.'
+                  : '나머지 것의 답을 생각하고 카드를 골라주세요.',
+          subtitle:
+              _firstSelectedCardIndex == null
+                  ? '첫 번째 카드를 선택하면 다음 안내가 표시됩니다.'
+                  : '첫 번째로 고른 카드를 제외하고 한 장을 더 선택하세요.',
+          disabledCardIndices:
+              _firstSelectedCardIndex == null
+                  ? const <int>{}
+                  : <int>{_firstSelectedCardIndex!},
+          onCardTap: _onDeckCardTap,
+        ),
       );
     }
 
@@ -321,7 +354,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
               _DirectAnswerSection(title: '2) NO를 선택한 경우', card: noCard),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _pickCards,
+                onPressed: _resetToFirstStep,
                 child: const Text('두 카드 다시 뽑기'),
               ),
             ],
@@ -432,7 +465,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
     if (!_isResultVisible) {
       return Scaffold(
         appBar: AppBar(title: const Text('2. 흐름을 알고 싶어요')),
-        body: _TarotDeckSelection(onCardTap: _showResult),
+        body: _TarotDeckSelection(onCardTap: (_) => _showResult()),
       );
     }
 
@@ -526,7 +559,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
     if (!_isResultVisible) {
       return Scaffold(
         appBar: AppBar(title: const Text('3. 선택지 중 무엇이 좋을까요?')),
-        body: _TarotDeckSelection(onCardTap: _showResult),
+        body: _TarotDeckSelection(onCardTap: (_) => _showResult()),
       );
     }
 
@@ -592,64 +625,95 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
 }
 
 class _TarotDeckSelection extends StatelessWidget {
-  const _TarotDeckSelection({required this.onCardTap});
+  const _TarotDeckSelection({
+    required this.onCardTap,
+    this.title = '카드를 선택해 리딩을 시작하세요',
+    this.subtitle = '22장의 카드가 펼쳐졌습니다. 원하는 카드 하나를 탭하세요.',
+    this.disabledCardIndices = const <int>{},
+  });
 
-  final VoidCallback onCardTap;
+  final ValueChanged<int> onCardTap;
+  final String title;
+  final String subtitle;
+  final Set<int> disabledCardIndices;
 
   static const List<int> _rowPattern = <int>[6, 5, 6, 5];
 
   @override
   Widget build(BuildContext context) {
+    final allCardIndices = List<int>.generate(22, (i) => i);
+    var cursor = 0;
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              '카드를 선택해 리딩을 시작하세요',
+            Text(
+              title,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '22장의 카드가 펼쳐졌습니다. 원하는 카드 하나를 탭하세요.',
+            Text(
+              subtitle,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             for (int row = 0; row < _rowPattern.length; row++) ...[
+              ...() {
+                final rowCount = _rowPattern[row];
+                final rowIndices = allCardIndices.sublist(
+                  cursor,
+                  cursor + rowCount,
+                );
+                cursor += rowCount;
+
+                return [
               Padding(
                 padding: EdgeInsets.only(left: row.isOdd ? 18 : 0),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 10,
-                  children: List<Widget>.generate(
-                    _rowPattern[row],
-                    (_) => GestureDetector(
-                      onTap: onCardTap,
-                      child: Container(
-                        width: 50,
-                        height: 84,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x29000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
+                  children: [
+                    for (final cardIndex in rowIndices)
+                      GestureDetector(
+                        onTap:
+                            disabledCardIndices.contains(cardIndex)
+                                ? null
+                                : () => onCardTap(cardIndex),
+                        child: Opacity(
+                          opacity:
+                              disabledCardIndices.contains(cardIndex)
+                                  ? 0.35
+                                  : 1,
+                          child: Container(
+                            width: 50,
+                            height: 84,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x29000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.asset(
-                          'assets/imgs/taro_card_back.png',
-                          fit: BoxFit.cover,
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              'assets/imgs/taro_card_back.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                  ],
                 ),
               ),
+                ];
+              }(),
               if (row != _rowPattern.length - 1) const SizedBox(height: 10),
             ],
           ],
