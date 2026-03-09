@@ -233,6 +233,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
   final Random _random = Random();
   TarotCard? _yesCard;
   TarotCard? _noCard;
+  bool _isResultVisible = false;
 
   @override
   void initState() {
@@ -285,12 +286,26 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
     });
   }
 
+  void _showResult() {
+    _pickCards();
+    setState(() {
+      _isResultVisible = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final yesCard = _yesCard;
     final noCard = _noCard;
     if (yesCard == null || noCard == null) {
       return const _ErrorPage(message: '카드 데이터를 찾지 못했습니다.');
+    }
+
+    if (!_isResultVisible) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('1. 명확한 답 (Yes/No)')),
+        body: _TarotDeckSelection(onCardTap: _showResult),
+      );
     }
 
     return Scaffold(
@@ -386,6 +401,7 @@ class FlowReadingPage extends StatefulWidget {
 class _FlowReadingPageState extends State<FlowReadingPage> {
   final Random _random = Random();
   TarotCard? _card;
+  bool _isResultVisible = false;
 
   @override
   void initState() {
@@ -399,11 +415,25 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
     });
   }
 
+  void _showResult() {
+    _pickCard();
+    setState(() {
+      _isResultVisible = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final card = _card;
     if (card == null) {
       return const _ErrorPage(message: '카드를 뽑지 못했습니다.');
+    }
+
+    if (!_isResultVisible) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('2. 흐름을 알고 싶어요')),
+        body: _TarotDeckSelection(onCardTap: _showResult),
+      );
     }
 
     return Scaffold(
@@ -454,6 +484,7 @@ class ChoiceReadingPage extends StatefulWidget {
 class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
   final Random _random = Random();
   List<TarotCard> _drawnCards = const <TarotCard>[];
+  bool _isResultVisible = false;
 
   @override
   void initState() {
@@ -475,6 +506,13 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
     });
   }
 
+  void _showResult() {
+    _startReading();
+    setState(() {
+      _isResultVisible = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.cards.length < 3) {
@@ -484,6 +522,13 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
     }
 
     const choices = ['A를 선택할 경우', 'B를 선택할 경우', 'C를 선택할 경우'];
+
+    if (!_isResultVisible) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('3. 선택지 중 무엇이 좋을까요?')),
+        body: _TarotDeckSelection(onCardTap: _showResult),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('3. 선택지 중 무엇이 좋을까요?')),
@@ -538,6 +583,74 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
                 onPressed: _startReading,
                 child: const Text('다시 뽑기'),
               ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TarotDeckSelection extends StatelessWidget {
+  const _TarotDeckSelection({required this.onCardTap});
+
+  final VoidCallback onCardTap;
+
+  static const List<int> _rowPattern = <int>[6, 5, 6, 5];
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '카드를 선택해 리딩을 시작하세요',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '22장의 카드가 펼쳐졌습니다. 원하는 카드 하나를 탭하세요.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            for (int row = 0; row < _rowPattern.length; row++) ...[
+              Padding(
+                padding: EdgeInsets.only(left: row.isOdd ? 18 : 0),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 10,
+                  children: List<Widget>.generate(
+                    _rowPattern[row],
+                    (_) => GestureDetector(
+                      onTap: onCardTap,
+                      child: Container(
+                        width: 50,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x29000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.asset(
+                          'assets/imgs/taro_card_back.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (row != _rowPattern.length - 1) const SizedBox(height: 10),
             ],
           ],
         ),
