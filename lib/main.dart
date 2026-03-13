@@ -332,6 +332,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
               _firstSelectedCardIndex == null
                   ? '첫 번째 카드를 선택하면 다음 안내가 표시됩니다.'
                   : '첫 번째로 고른 카드를 제외하고 한 장을 더 선택하세요.',
+          cardBackAssetPath: 'assets/imgs/taro_back_2.png',
           disabledCardIndices:
               _firstSelectedCardIndex == null
                   ? const <int>{}
@@ -465,7 +466,10 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
     if (!_isResultVisible) {
       return Scaffold(
         appBar: AppBar(title: const Text('2. 흐름을 알고 싶어요')),
-        body: _TarotDeckSelection(onCardTap: (_) => _showResult()),
+        body: _TarotDeckSelection(
+          cardBackAssetPath: 'assets/imgs/taro_back_3.png',
+          onCardTap: (_) => _showResult(),
+        ),
       );
     }
 
@@ -559,7 +563,10 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
     if (!_isResultVisible) {
       return Scaffold(
         appBar: AppBar(title: const Text('3. 선택지 중 무엇이 좋을까요?')),
-        body: _TarotDeckSelection(onCardTap: (_) => _showResult()),
+        body: _TarotDeckSelection(
+          cardBackAssetPath: 'assets/imgs/taro_back_4.png',
+          onCardTap: (_) => _showResult(),
+        ),
       );
     }
 
@@ -627,17 +634,19 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
 class _TarotDeckSelection extends StatelessWidget {
   const _TarotDeckSelection({
     required this.onCardTap,
+    required this.cardBackAssetPath,
     this.title = '카드를 선택해 리딩을 시작하세요',
     this.subtitle = '22장의 카드가 펼쳐졌습니다. 원하는 카드 하나를 탭하세요.',
     this.disabledCardIndices = const <int>{},
   });
 
   final ValueChanged<int> onCardTap;
+  final String cardBackAssetPath;
   final String title;
   final String subtitle;
   final Set<int> disabledCardIndices;
 
-  static const List<int> _rowPattern = <int>[6, 5, 6, 5];
+  static const List<int> _rowPattern = <int>[5, 5, 5, 5, 2];
 
   @override
   Widget build(BuildContext context) {
@@ -661,61 +670,80 @@ class _TarotDeckSelection extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            for (int row = 0; row < _rowPattern.length; row++) ...[
-              ...() {
-                final rowCount = _rowPattern[row];
-                final rowIndices = allCardIndices.sublist(
-                  cursor,
-                  cursor + rowCount,
-                );
-                cursor += rowCount;
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 8.0;
+                const rowSpacing = 10.0;
+                final maxColumns = _rowPattern.reduce(max);
+                final cardWidth =
+                    (constraints.maxWidth - (maxColumns - 1) * spacing) /
+                    maxColumns;
+                final cardHeight = cardWidth * (84 / 50);
 
-                return [
-              Padding(
-                padding: EdgeInsets.only(left: row.isOdd ? 18 : 0),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 10,
+                return Column(
                   children: [
-                    for (final cardIndex in rowIndices)
-                      GestureDetector(
-                        onTap:
-                            disabledCardIndices.contains(cardIndex)
-                                ? null
-                                : () => onCardTap(cardIndex),
-                        child: Opacity(
-                          opacity:
-                              disabledCardIndices.contains(cardIndex)
-                                  ? 0.35
-                                  : 1,
-                          child: Container(
-                            width: 50,
-                            height: 84,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x29000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
+                    for (int row = 0; row < _rowPattern.length; row++) ...[
+                      ...() {
+                        final rowCount = _rowPattern[row];
+                        final rowIndices = allCardIndices.sublist(
+                          cursor,
+                          cursor + rowCount,
+                        );
+                        cursor += rowCount;
+
+                        return [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              for (int i = 0; i < rowIndices.length; i++) ...[
+                                if (i != 0) const SizedBox(width: spacing),
+                                GestureDetector(
+                                  onTap:
+                                      disabledCardIndices.contains(
+                                            rowIndices[i],
+                                          )
+                                          ? null
+                                          : () => onCardTap(rowIndices[i]),
+                                  child: Opacity(
+                                    opacity:
+                                        disabledCardIndices.contains(
+                                              rowIndices[i],
+                                            )
+                                            ? 0.35
+                                            : 1,
+                                    child: Container(
+                                      width: cardWidth,
+                                      height: cardHeight,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Color(0x29000000),
+                                            blurRadius: 4,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: Image.asset(
+                                        cardBackAssetPath,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ],
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Image.asset(
-                              'assets/imgs/taro_card_back.png',
-                              fit: BoxFit.cover,
-                            ),
+                            ],
                           ),
-                        ),
-                      ),
+                        ];
+                      }(),
+                      if (row != _rowPattern.length - 1)
+                        const SizedBox(height: rowSpacing),
+                    ],
                   ],
-                ),
-              ),
-                ];
-              }(),
-              if (row != _rowPattern.length - 1) const SizedBox(height: 10),
-            ],
+                );
+              },
+            ),
           ],
         ),
       ),
