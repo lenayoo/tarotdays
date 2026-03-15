@@ -1,0 +1,156 @@
+[
+  {
+    "id": 0,
+    "name": "The Fool",
+    "direct_answer": "This is the perfect moment for a new beginning. Don't worry—just take the first step. The outcome is 'very positive'!",
+    "flow_reading": "This is a time of freedom and open possibilities. Life may flow in unexpected directions, bringing surprising opportunities and lucky moments.",
+    "choice_option": "This choice will feel like an adventure. Nothing is guaranteed, but it can bring you the greatest freedom and personal growth."
+  },
+  {
+    "id": 1,
+    "name": "The Magician",
+    "direct_answer": "You already have everything you need. Stop hesitating and take action. The answer is 'Yes'.",
+    "flow_reading": "A powerful creative energy surrounds you. Your ideas have the potential to become reality right now.",
+    "choice_option": "Choosing this path allows you to fully express your talents. You will be able to take the lead and shape the situation yourself."
+  },
+  {
+    "id": 2,
+    "name": "The High Priestess",
+    "direct_answer": "This is not the time to act, but to observe. The answer lies within your intuition. The result is 'neutral / wait and see'.",
+    "flow_reading": "A quiet and reflective period. While external changes may seem minimal, your intuition and inner wisdom are growing stronger.",
+    "choice_option": "This choice encourages intellectual and spiritual growth. However, it may also feel emotionally distant or a little lonely."
+  },
+  {
+    "id": 3,
+    "name": "The Empress",
+    "direct_answer": "Warmth, abundance, and happiness are waiting for you. Both love and prosperity are favorable. The result is 'very positive'!",
+    "flow_reading": "Things begin to grow and flourish around you. Support from others and nurturing connections will bring joy and comfort.",
+    "choice_option": "This choice will bring richness and comfort into your life. If you want stability and warmth, this is the right path."
+  },
+  {
+    "id": 4,
+    "name": "The Emperor",
+    "direct_answer": "Strong determination and responsibility are required. The journey may be demanding, but victory is possible. The result is 'positive (effort required)'.",
+    "flow_reading": "A period of structure, authority, and leadership. Rational thinking and discipline will help you take control of the situation.",
+    "choice_option": "This choice places you in a position of power and responsibility. Success is likely, but it comes with greater duties."
+  },
+  {
+    "id": 5,
+    "name": "The Hierophant",
+    "direct_answer": "Following tradition or expert advice will lead you in the right direction. Trust and integrity are important now. The result is 'positive'.",
+    "flow_reading": "A stable and supportive flow. Guidance from mentors or recognition within a group or organization may appear.",
+    "choice_option": "This is a safe and ethical path. If you want security and gradual progress within a system, this is a wise choice."
+  },
+  {
+    "id": 6,
+    "name": "The Lovers",
+    "direct_answer": "Harmony and joyful connections are approaching. An important choice is in front of you. The result is 'very positive'.",
+    "flow_reading": "A time of communication, connection, and emotional harmony. Relationships will bring powerful energy into your life.",
+    "choice_option": "This choice follows your heart. It brings joy and harmony, but remember that choosing one path means letting go of another."
+  },
+  {
+    "id": 7,
+    "name": "The Chariot",
+    "direct_answer": "Move forward with confidence! Victory is within your reach. The result is 'strongly positive'.",
+    "flow_reading": "A dynamic and determined flow. Even obstacles can be overcome with strong focus and willpower.",
+    "choice_option": "This choice may bring quick success. However, the fast pace requires strong concentration and control."
+  },
+  {
+    "id": 8,
+    "name": "Strength",
+    "direct_answer": "Gentleness can be stronger than force. Handle the situation with patience and compassion. The result is 'positive'.",
+    "flow_reading": "Inner strength and emotional balance become important. True power comes from patience and calm control.",
+    "choice_option": "This path requires perseverance. Though it may take time, you will ultimately gain true mastery over the situation."
+  },
+  {
+    "id": 9,
+    "name": "The Hermit",
+    "direct_answer": "Take a step back and spend time in reflection. The answer already exists within you. The result is 'neutral / reflection'.",
+    "flow_reading": "A quiet period of introspection and learning. Rather than seeking outside answers, deeper wisdom comes from within.",
+    "choice_option": "This path may feel lonely at times, but it leads to deep insight and personal wisdom."
+  },
+  {
+    "id": 10,
+    "name": "Wheel of Fortune",
+    "direct_answer": "The wheel of fortune has begun to turn. Don't miss this opportunity! The result is 'very positive'.",
+    "flow_reading": "Larger forces of fate are at work. Unexpected shifts or new opportunities may appear suddenly.",
+    "choice_option": "This choice may open a new chapter in your life. Embrace the change and ride the wave of destiny."
+  },
+  {
+    "id": 11,
+    "name": "Justice",
+    "direct_answer": "Make decisions based on logic rather than emotion. What you give is what you receive. The result is 'neutral / fair'.",
+    "flow_reading": "Balance, fairness, and truth are essential now. Important decisions or agreements require careful judgment.",
+    "choice_option": "This choice is rational and fair. If you want clarity and honesty, this is the right path."
+  },
+  {
+    "id": 12,
+    "name": "The Hanged Man",
+    "direct_answer": "Do not force movement right now. Changing your perspective will reveal new possibilities. The result is 'pause / patience'.",
+    "flow_reading": "Although things may feel stuck, this is a period of growth and deeper understanding.",
+    "choice_option": "This choice may feel frustrating at first, but it leads to profound insight and wisdom."
+  },
+  {
+    "id": 13,
+    "name": "Death",
+    "direct_answer": "When one door closes, another opens. It is time to let go of the past. The result is 'transformation'.",
+    "flow_reading": "A powerful wave of change is approaching. Endings make way for important new beginnings.",
+    "choice_option": "This path requires releasing the past. Though it may feel difficult, it opens the door to a completely new life chapter."
+  },
+  {
+    "id": 14,
+    "name": "Temperance",
+    "direct_answer": "Blend different elements together. With patience and balance, harmony will come. The result is 'positive (balance)'.",
+    "flow_reading": "A calm and balanced flow where emotional and rational aspects begin to align.",
+    "choice_option": "This choice offers peace and stability. It favors cooperation, balance, and gradual solutions."
+  },
+  {
+    "id": 15,
+    "name": "The Devil",
+    "direct_answer": "Be careful of temptation or unhealthy attachments. Something may be holding you back. The result is 'warning / negative'.",
+    "flow_reading": "Strong desires or difficult attachments may influence your decisions. Awareness is important now.",
+    "choice_option": "This option may look attractive but could come with hidden costs. Think carefully before committing."
+  },
+  {
+    "id": 16,
+    "name": "The Tower",
+    "direct_answer": "Unexpected change may occur. However, it may be necessary to correct the wrong direction.",
+    "flow_reading": "Old beliefs or structures may collapse. Although shocking, this can lead to a new and more authentic beginning.",
+    "choice_option": "This path is not stable, but it may become a powerful turning point that breaks old limitations."
+  },
+  {
+    "id": 17,
+    "name": "The Star",
+    "direct_answer": "The long night is ending and hope is shining through. Your wishes may come true. The result is 'very positive'!",
+    "flow_reading": "A gentle and healing energy surrounds you. Inspiration and emotional renewal will guide you forward.",
+    "choice_option": "This choice leads you toward your dreams and true aspirations."
+  },
+  {
+    "id": 18,
+    "name": "The Moon",
+    "direct_answer": "Things may feel unclear right now. Not all information has been revealed yet. Waiting may be wise.",
+    "flow_reading": "Emotions and intuition are heightened. Look beyond appearances to understand deeper meanings.",
+    "choice_option": "This path contains uncertainty. Avoid making decisions based purely on emotion."
+  },
+  {
+    "id": 19,
+    "name": "The Sun",
+    "direct_answer": "Congratulations! Everything shines brightly and success is likely. This is your moment.",
+    "flow_reading": "A powerful and joyful flow of energy surrounds you. Hidden talents may finally be recognized.",
+    "choice_option": "This choice brings happiness, confidence, and clear opportunities ahead."
+  },
+  {
+    "id": 20,
+    "name": "Judgement",
+    "direct_answer": "Good news or a meaningful reunion may arrive. Your sincerity will be rewarded. The result is 'positive (rebirth)'.",
+    "flow_reading": "Past efforts begin to pay off. Something that was paused may start moving again.",
+    "choice_option": "This choice brings new opportunities and encourages you to rise to a higher level."
+  },
+  {
+    "id": 21,
+    "name": "The World",
+    "direct_answer": "Completion and success are within reach. Your goal will be fulfilled.",
+    "flow_reading": "A cycle reaches its natural conclusion, bringing harmony between inner peace and external achievement.",
+    "choice_option": "This choice completes your journey beautifully and prepares you for the next stage."
+  }
+]

@@ -1,98 +1,15 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
+import 'app_strings.dart';
+import 'tarot_data.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 enum ReadingType { directAnswer, flow, choice }
-
-enum AnswerType {
-  yes('YES', Color(0xFF2E7D32), Color(0xFFE8F5E9)),
-  no('NO', Color(0xFFC62828), Color(0xFFFFEBEE)),
-  neutral('중립', Color(0xFF455A64), Color(0xFFECEFF1));
-
-  const AnswerType(this.label, this.textColor, this.backgroundColor);
-
-  final String label;
-  final Color textColor;
-  final Color backgroundColor;
-
-  static AnswerType fromRaw(String raw) {
-    switch (raw.trim().toLowerCase()) {
-      case 'yes':
-        return AnswerType.yes;
-      case 'no':
-        return AnswerType.no;
-      default:
-        return AnswerType.neutral;
-    }
-  }
-}
-
-class TarotCard {
-  const TarotCard({
-    required this.id,
-    required this.name,
-    required this.directAnswer,
-    required this.flowReading,
-    required this.choiceOption,
-    required this.answerType,
-  });
-
-  final int id;
-  final String name;
-  final String directAnswer;
-  final String flowReading;
-  final String choiceOption;
-  final AnswerType answerType;
-
-  factory TarotCard.fromJson(Map<String, dynamic> json) {
-    return TarotCard(
-      id: json['id'] is int ? json['id'] as int : -1,
-      name:
-          (json['name'] as String?)?.trim().isNotEmpty == true
-              ? json['name'] as String
-              : '이름 없는 카드',
-      directAnswer:
-          (json['direct_answer'] as String?)?.trim().isNotEmpty == true
-              ? json['direct_answer'] as String
-              : '직접 답변 데이터가 없습니다.',
-      flowReading:
-          (json['flow_reading'] as String?)?.trim().isNotEmpty == true
-              ? json['flow_reading'] as String
-              : '흐름 리딩 데이터가 없습니다.',
-      choiceOption:
-          (json['choice_option'] as String?)?.trim().isNotEmpty == true
-              ? json['choice_option'] as String
-              : '선택지 리딩 데이터가 없습니다.',
-      answerType: AnswerType.fromRaw(
-        (json['answer_type'] as String?) ?? 'neutral',
-      ),
-    );
-  }
-}
-
-class TarotRepository {
-  static Future<List<TarotCard>> loadCards() async {
-    try {
-      final raw = await rootBundle.loadString('assets/taro_reading.json');
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) {
-        throw const FormatException('JSON root must be a list.');
-      }
-      return decoded
-          .whereType<Map<String, dynamic>>()
-          .map(TarotCard.fromJson)
-          .toList();
-    } catch (e) {
-      throw Exception('카드 데이터를 불러오지 못했습니다: $e');
-    }
-  }
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -144,38 +61,208 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('당신은 어떠한 답을 원하시나요? 🔮')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ElevatedButton(
-              onPressed: () => _openPage(context, ReadingType.directAnswer),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFD9E8),
-              ),
-              child: const Text('1. 명확한 답 (Yes or No)'),
+      body: _TarotMoodBackground(
+        palette: _TarotMoodPalettes.home,
+        showBackButton: false,
+        topContentOffset: 0,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 8, 22, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'TAROT DAYS',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: const Color(0xFF8E5870),
+                    letterSpacing: 2.4,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  strings.homeHeadline,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: const Color(0xFF623C55),
+                    fontWeight: FontWeight.w900,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  strings.homeDescription,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF866B78),
+                    height: 1.45,
+                  ),
+                ),
+                const Spacer(flex: 2),
+                _HomeReadingCard(
+                  indexLabel: '01',
+                  title: strings.directAnswerMenuTitle,
+                  subtitle: strings.directAnswerMenuSubtitle,
+                  description: strings.directAnswerMenuDescription,
+                  accentColor: const Color(0xFFB85F7C),
+                  panelColor: const Color(0xFFFFF4F8),
+                  icon: Icons.auto_awesome_rounded,
+                  onTap: () => _openPage(context, ReadingType.directAnswer),
+                ),
+                const SizedBox(height: 12),
+                _HomeReadingCard(
+                  indexLabel: '02',
+                  title: strings.flowMenuTitle,
+                  subtitle: strings.flowMenuSubtitle,
+                  description: strings.flowMenuDescription,
+                  accentColor: const Color(0xFF8A4E73),
+                  panelColor: const Color(0xFFFFF2F9),
+                  icon: Icons.nights_stay_rounded,
+                  onTap: () => _openPage(context, ReadingType.flow),
+                ),
+                const SizedBox(height: 12),
+                _HomeReadingCard(
+                  indexLabel: '03',
+                  title: strings.choiceMenuTitle,
+                  subtitle: strings.choiceMenuSubtitle,
+                  description: strings.choiceMenuDescription,
+                  accentColor: const Color(0xFF5668AC),
+                  panelColor: const Color(0xFFF3F6FF),
+                  icon: Icons.stacked_line_chart_rounded,
+                  onTap: () => _openPage(context, ReadingType.choice),
+                ),
+                const Spacer(flex: 3),
+              ],
             ),
-            const SizedBox(height: 14),
-            ElevatedButton(
-              onPressed: () => _openPage(context, ReadingType.flow),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFDDF4EC),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeReadingCard extends StatelessWidget {
+  const _HomeReadingCard({
+    required this.indexLabel,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.accentColor,
+    required this.panelColor,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String indexLabel;
+  final String title;
+  final String subtitle;
+  final String description;
+  final Color accentColor;
+  final Color panelColor;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 132,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            decoration: BoxDecoration(
+              color: panelColor.withValues(alpha: 0.80),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: const Color(0xFFFFFFFF).withValues(alpha: 0.82),
               ),
-              child: const Text('2. 흐름을 알고 싶어요! (하나의 카드리딩)'),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x2235374E),
+                  blurRadius: 24,
+                  offset: Offset(0, 14),
+                ),
+              ],
             ),
-            const SizedBox(height: 14),
-            ElevatedButton(
-              onPressed: () => _openPage(context, ReadingType.choice),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE3E6FF),
-              ),
-              child: const Text('3. 선택지 중 무엇이 좋을까요? (3가지 선택)'),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: accentColor, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        indexLabel,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(
+                          color: accentColor,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: const Color(0xFF493843),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: accentColor.withValues(alpha: 0.88),
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF6E6268),
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: accentColor.withValues(alpha: 0.88),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -189,8 +276,11 @@ class ReadingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final strings = AppStrings.of(context);
+
     return FutureBuilder<List<TarotCard>>(
-      future: TarotRepository.loadCards(),
+      future: TarotRepository.loadCards(locale),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Scaffold(
@@ -204,7 +294,7 @@ class ReadingPage extends StatelessWidget {
 
         final cards = snapshot.data ?? const <TarotCard>[];
         if (cards.isEmpty) {
-          return const _ErrorPage(message: '카드 데이터가 비어 있습니다.');
+          return _ErrorPage(message: strings.emptyCardData);
         }
 
         switch (type) {
@@ -245,15 +335,26 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
   AnswerType _inferFromText(String text) {
     final normalized = text.toLowerCase();
     if (normalized.contains('yes') ||
+        normalized.contains('positive') ||
+        normalized.contains('very positive') ||
         normalized.contains('긍정') ||
         normalized.contains('승리') ||
-        normalized.contains('성공')) {
+        normalized.contains('성공') ||
+        normalized.contains('はい') ||
+        normalized.contains('良い') ||
+        normalized.contains('好転') ||
+        normalized.contains('成功')) {
       return AnswerType.yes;
     }
     if (normalized.contains('no') ||
+        normalized.contains('negative') ||
+        normalized.contains('caution') ||
         normalized.contains('보류') ||
         normalized.contains('부정') ||
-        normalized.contains('주의')) {
+        normalized.contains('주의') ||
+        normalized.contains('いいえ') ||
+        normalized.contains('注意') ||
+        normalized.contains('延期')) {
       return AnswerType.no;
     }
     return AnswerType.neutral;
@@ -314,10 +415,11 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final yesCard = _yesCard;
     final noCard = _noCard;
     if (yesCard == null || noCard == null) {
-      return const _ErrorPage(message: '카드 데이터를 찾지 못했습니다.');
+      return _ErrorPage(message: strings.cardDataNotFound);
     }
 
     if (!_isResultVisible) {
@@ -327,8 +429,8 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
           child: _TarotDeckSelection(
             title:
                 _firstSelectedCardIndex == null
-                    ? '하나의 답을 생각하고 카드를 골라주세요.'
-                    : '나머지 것의 답을 생각하고 카드를 골라주세요.',
+                    ? strings.directFirstPickPrompt
+                    : strings.directSecondPickPrompt,
             cardBackAssetPath: 'assets/imgs/taro_back_2.png',
             disabledCardIndices:
                 _firstSelectedCardIndex == null
@@ -352,7 +454,10 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF8FA).withValues(alpha: 0.78),
                   borderRadius: BorderRadius.circular(28),
@@ -368,7 +473,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
                   ],
                 ),
                 child: Text(
-                  'YES / NO의 결을 비교해보세요',
+                  strings.directResultHeadline,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: const Color(0xFF6E3E55),
@@ -378,7 +483,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                'rose haze · soft sage contrast',
+                strings.directMoodLabel,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: const Color(0xFF91717E),
@@ -393,14 +498,14 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _DirectAnswerSection(
-                        title: '1) YES를 선택한 경우',
+                        title: strings.directYesCaseTitle,
                         card: yesCard,
                         accentColor: const Color(0xFF5D8A72),
                         panelColor: const Color(0xFFF4FBF6),
                       ),
                       const SizedBox(height: 14),
                       _DirectAnswerSection(
-                        title: '2) NO를 선택한 경우',
+                        title: strings.directNoCaseTitle,
                         card: noCard,
                         accentColor: const Color(0xFFB45B74),
                         panelColor: const Color(0xFFFFF5F8),
@@ -416,7 +521,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
                   backgroundColor: const Color(0xFFFFEDF2),
                   foregroundColor: const Color(0xFF6E3E55),
                 ),
-                child: const Text('두 카드 다시 뽑기'),
+                child: Text(strings.redrawTwoCards),
               ),
             ],
           ),
@@ -481,7 +586,7 @@ class _DirectAnswerSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              card.answerType.label,
+              card.answerType.label(AppStrings.of(context)),
               style: TextStyle(
                 color: card.answerType.textColor,
                 fontWeight: FontWeight.bold,
@@ -537,9 +642,10 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final card = _card;
     if (card == null) {
-      return const _ErrorPage(message: '카드를 뽑지 못했습니다.');
+      return _ErrorPage(message: strings.drawCardFailed);
     }
 
     if (!_isResultVisible) {
@@ -549,7 +655,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
           child: _TarotDeckSelection(
             cardBackAssetPath: 'assets/imgs/taro_back_3.png',
             onCardTap: (_) => _showResult(),
-            title: '지금의 흐름을 떠올리며 카드를 골라주세요.',
+            title: strings.flowPickPrompt,
             titleColor: const Color(0xFF6F3556),
             compactHeader: true,
             scrollable: false,
@@ -590,14 +696,16 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
                     Text(
                       card.name,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(
                         color: const Color(0xFF6F3556),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'soft pink gradient · floating sparkles',
+                      strings.flowMoodLabel,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF9A6A86),
@@ -644,7 +752,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
                   backgroundColor: const Color(0xFFFFE6F2),
                   foregroundColor: const Color(0xFF6F3556),
                 ),
-                child: const Text('다시 뽑기'),
+                child: Text(strings.redrawCard),
               ),
             ],
           ),
@@ -655,10 +763,17 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
 }
 
 class _TarotMoodBackground extends StatefulWidget {
-  const _TarotMoodBackground({required this.child, required this.palette});
+  const _TarotMoodBackground({
+    required this.child,
+    required this.palette,
+    this.showBackButton = true,
+    this.topContentOffset = 56,
+  });
 
   final Widget child;
   final _TarotMoodPalette palette;
+  final bool showBackButton;
+  final double topContentOffset;
 
   @override
   State<_TarotMoodBackground> createState() => _TarotMoodBackgroundState();
@@ -708,7 +823,9 @@ class _TarotMoodBackgroundState extends State<_TarotMoodBackground>
                       center: const Alignment(-0.75, -0.85),
                       radius: 0.95,
                       colors: [
-                        Colors.white.withValues(alpha: widget.palette.glowAlphaTop),
+                        Colors.white.withValues(
+                          alpha: widget.palette.glowAlphaTop,
+                        ),
                         Colors.transparent,
                       ],
                     ),
@@ -738,18 +855,21 @@ class _TarotMoodBackgroundState extends State<_TarotMoodBackground>
                   centerColor: widget.palette.sparkleCenterColor,
                 ),
               Padding(
-                padding: EdgeInsets.only(top: topInset + 56),
+                padding: EdgeInsets.only(
+                  top: topInset + widget.topContentOffset,
+                ),
                 child: widget.child,
               ),
-              Positioned(
-                top: topInset + 8,
-                left: 12,
-                child: _FlowBackButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  tintColor: widget.palette.backButtonTint,
-                  backgroundColor: widget.palette.backButtonBackground,
+              if (widget.showBackButton)
+                Positioned(
+                  top: topInset + 8,
+                  left: 12,
+                  child: _FlowBackButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    tintColor: widget.palette.backButtonTint,
+                    backgroundColor: widget.palette.backButtonBackground,
+                  ),
                 ),
-              ),
             ],
           ),
         );
@@ -837,7 +957,9 @@ class _FloatingSparkle extends StatelessWidget {
           child: SizedBox(
             width: spec.size,
             height: spec.size,
-            child: CustomPaint(painter: _SparklePainter(centerColor: centerColor)),
+            child: CustomPaint(
+              painter: _SparklePainter(centerColor: centerColor),
+            ),
           ),
         ),
       ),
@@ -858,24 +980,33 @@ class _SparklePainter extends CustomPainter {
           ..color = const Color(0xFFFFFFFF)
           ..style = PaintingStyle.fill;
 
-    final path = Path()
-      ..moveTo(center.dx, 0)
-      ..lineTo(center.dx + size.width * 0.14, center.dy - size.height * 0.14)
-      ..lineTo(size.width, center.dy)
-      ..lineTo(center.dx + size.width * 0.14, center.dy + size.height * 0.14)
-      ..lineTo(center.dx, size.height)
-      ..lineTo(center.dx - size.width * 0.14, center.dy + size.height * 0.14)
-      ..lineTo(0, center.dy)
-      ..lineTo(center.dx - size.width * 0.14, center.dy - size.height * 0.14)
-      ..close();
+    final path =
+        Path()
+          ..moveTo(center.dx, 0)
+          ..lineTo(
+            center.dx + size.width * 0.14,
+            center.dy - size.height * 0.14,
+          )
+          ..lineTo(size.width, center.dy)
+          ..lineTo(
+            center.dx + size.width * 0.14,
+            center.dy + size.height * 0.14,
+          )
+          ..lineTo(center.dx, size.height)
+          ..lineTo(
+            center.dx - size.width * 0.14,
+            center.dy + size.height * 0.14,
+          )
+          ..lineTo(0, center.dy)
+          ..lineTo(
+            center.dx - size.width * 0.14,
+            center.dy - size.height * 0.14,
+          )
+          ..close();
 
     canvas.drawShadow(path, const Color(0x66FFFFFF), 6, false);
     canvas.drawPath(path, paint);
-    canvas.drawCircle(
-      center,
-      size.width * 0.10,
-      Paint()..color = centerColor,
-    );
+    canvas.drawCircle(center, size.width * 0.10, Paint()..color = centerColor);
   }
 
   @override
@@ -904,8 +1035,9 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
 
   void _startReading() {
     if (widget.cards.length < 3) {
+      final strings = AppStrings.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('카드가 3장 미만이라 선택지 리딩을 할 수 없습니다.')),
+        SnackBar(content: Text(strings.choiceSnackBar)),
       );
       return;
     }
@@ -925,13 +1057,16 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     if (widget.cards.length < 3) {
-      return const _ErrorPage(
-        message: '카드 데이터가 3장 미만이라 3가지 선택 리딩을 제공할 수 없습니다.',
-      );
+      return _ErrorPage(message: strings.choiceError);
     }
 
-    const choices = ['A를 선택할 경우', 'B를 선택할 경우', 'C를 선택할 경우'];
+    final choices = [
+      strings.choiceAPrefix,
+      strings.choiceBPrefix,
+      strings.choiceCPrefix,
+    ];
 
     if (!_isResultVisible) {
       return Scaffold(
@@ -940,7 +1075,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
           child: _TarotDeckSelection(
             cardBackAssetPath: 'assets/imgs/taro_back_4.png',
             onCardTap: (_) => _showResult(),
-            title: '세 갈래 흐름 중 더 끌리는 방향을 골라주세요.',
+            title: strings.choicePickPrompt,
             titleColor: const Color(0xFF46558D),
             compactHeader: true,
             scrollable: false,
@@ -958,7 +1093,10 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7F8FF).withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(28),
@@ -974,7 +1112,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
                   ],
                 ),
                 child: Text(
-                  '세 방향의 흐름을 비교해보세요',
+                  strings.choiceResultHeadline,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: const Color(0xFF46558D),
@@ -984,7 +1122,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                'blue mist · lilac branching spread',
+                strings.choiceMoodLabel,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: const Color(0xFF7380A5),
@@ -1015,7 +1153,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
                   backgroundColor: const Color(0xFFEEF1FF),
                   foregroundColor: const Color(0xFF46558D),
                 ),
-                child: const Text('다시 뽑기'),
+                child: Text(strings.redrawCard),
               ),
             ],
           ),
@@ -1078,7 +1216,7 @@ class _ChoiceResultCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '카드: ${card.name}',
+            AppStrings.of(context).cardLabel(card.name),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: const Color(0xFF4B5675),
               fontWeight: FontWeight.w700,
@@ -1191,13 +1329,29 @@ class _TarotMoodPalettes {
     glowAlphaTop: 0.50,
     glowAlphaBottom: 0.42,
   );
+
+  static const home = _TarotMoodPalette(
+    gradientColors: [
+      Color(0xFFFFF6FA),
+      Color(0xFFFBE3EF),
+      Color(0xFFF1E7FF),
+      Color(0xFFE8F4FF),
+    ],
+    sparkles: _sharedSparkles,
+    sparkleCenterColor: Color(0xFFFFE2F0),
+    backButtonTint: Color(0xFF6E3E55),
+    backButtonBackground: Color(0xFFFFFAFC),
+    glowColorBottom: Color(0xFFF5F8FF),
+    glowAlphaTop: 0.58,
+    glowAlphaBottom: 0.44,
+  );
 }
 
 class _TarotDeckSelection extends StatelessWidget {
   const _TarotDeckSelection({
     required this.onCardTap,
     required this.cardBackAssetPath,
-    this.title = '카드를 선택해 리딩을 시작하세요',
+    this.title = '',
     this.disabledCardIndices = const <int>{},
     this.titleColor = const Color(0xFF2D2430),
     this.compactHeader = false,
@@ -1216,6 +1370,8 @@ class _TarotDeckSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedTitle =
+        title.isEmpty ? AppStrings.of(context).defaultDeckTitle : title;
     final allCardIndices = List<int>.generate(22, (i) => i);
     var cursor = 0;
 
@@ -1230,15 +1386,15 @@ class _TarotDeckSelection extends StatelessWidget {
               padding: EdgeInsets.only(bottom: compactHeader ? 10 : 20),
               child: Column(
                 children: [
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: compactHeader ? 18.5 : 16,
-                    fontWeight: FontWeight.w700,
-                    color: titleColor,
+                  Text(
+                    resolvedTitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: compactHeader ? 18.5 : 16,
+                      fontWeight: FontWeight.w700,
+                      color: titleColor,
+                    ),
                   ),
-                ),
                 ],
               ),
             ),
@@ -1256,11 +1412,15 @@ class _TarotDeckSelection extends StatelessWidget {
                       (constraints.maxWidth - (maxColumns - 1) * spacing) /
                       maxColumns;
                   final heightBasedCardHeight =
-                      (constraints.maxHeight - (_rowPattern.length - 1) * rowSpacing) /
+                      (constraints.maxHeight -
+                          (_rowPattern.length - 1) * rowSpacing) /
                       _rowPattern.length;
                   final heightBasedCardWidth =
                       heightBasedCardHeight / cardAspectRatio;
-                  final cardWidth = min(widthBasedCardWidth, heightBasedCardWidth);
+                  final cardWidth = min(
+                    widthBasedCardWidth,
+                    heightBasedCardWidth,
+                  );
                   final cardHeight = cardWidth * cardAspectRatio;
 
                   cursor = 0;
@@ -1281,7 +1441,11 @@ class _TarotDeckSelection extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  for (int i = 0; i < rowIndices.length; i++) ...[
+                                  for (
+                                    int i = 0;
+                                    i < rowIndices.length;
+                                    i++
+                                  ) ...[
                                     if (i != 0) const SizedBox(width: spacing),
                                     GestureDetector(
                                       onTap:
@@ -1301,7 +1465,9 @@ class _TarotDeckSelection extends StatelessWidget {
                                           width: cardWidth,
                                           height: cardHeight,
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                             boxShadow: const [
                                               BoxShadow(
                                                 color: Color(0x332C0F20),
@@ -1343,7 +1509,9 @@ class _TarotDeckSelection extends StatelessWidget {
     );
 
     if (scrollable) {
-      content = SingleChildScrollView(child: SizedBox(height: 760, child: content));
+      content = SingleChildScrollView(
+        child: SizedBox(height: 760, child: content),
+      );
     }
 
     return SafeArea(child: content);
@@ -1358,7 +1526,7 @@ class _ErrorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('오류')),
+      appBar: AppBar(title: Text(AppStrings.of(context).errorTitle)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

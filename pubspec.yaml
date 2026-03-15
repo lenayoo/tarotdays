@@ -59,7 +59,9 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/taro_reading.json
+    - assets/taro_reading_kr.json
+    - assets/taro_reading_jp.json
+    - assets/taro_reading_en.json
     - assets/imgs/
 
   # To add assets to your application, add an assets section, like this:
