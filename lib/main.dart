@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_strings.dart';
 import 'tarot_data.dart';
@@ -12,11 +15,104 @@ void main() {
 
 enum ReadingType { directAnswer, flow, choice }
 
+class _UserProfile {
+  const _UserProfile({required this.name});
+
+  final String name;
+}
+
+class _AppStorage {
+  static const _userNameKey = 'user_name';
+  static const _dailyLimitPerSection = 2;
+  static const _disableDailyLimitForTesting = true;
+
+  static Future<_UserProfile> loadUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString(_userNameKey)?.trim();
+    return _UserProfile(name: name ?? '');
+  }
+
+  static Future<void> saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userNameKey, name.trim());
+  }
+
+  static Future<bool> canUseReading(ReadingType type) async {
+    if (_disableDailyLimitForTesting) {
+      return true;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final count = prefs.getInt(_dailyKey(type, _todayKey())) ?? 0;
+    return count < _dailyLimitPerSection;
+  }
+
+  static Future<void> consumeReading(ReadingType type) async {
+    if (_disableDailyLimitForTesting) {
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final key = _dailyKey(type, _todayKey());
+    final count = prefs.getInt(key) ?? 0;
+    await prefs.setInt(key, count + 1);
+  }
+
+  static String _todayKey() {
+    final now = DateTime.now();
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$month-$day';
+  }
+
+  static String _dailyKey(ReadingType type, String dateKey) {
+    return 'daily_${type.name}_$dateKey';
+  }
+}
+
+extension on ReadingType {
+  String sectionTitle(AppStrings strings) {
+    switch (this) {
+      case ReadingType.directAnswer:
+        return strings.directAnswerMenuTitle;
+      case ReadingType.flow:
+        return strings.flowMenuTitle;
+      case ReadingType.choice:
+        return strings.choiceMenuTitle;
+    }
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFFFFC9DE),
+        brightness: Brightness.light,
+      ),
+      scaffoldBackgroundColor: const Color(0xFFFFF7FB),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFFFFE4F1),
+        foregroundColor: Color(0xFF5A4A53),
+        elevation: 0,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: const Color(0xFF4A3E45),
+          backgroundColor: const Color(0xFFFFEAF4),
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+
     return MaterialApp(
       title: 'Tarot Days',
       localizationsDelegates: const [
@@ -29,39 +125,56 @@ class MyApp extends StatelessWidget {
         Locale('ko'),
         Locale('ja'),
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFFC9DE),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFFFF7FB),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFFE4F1),
-          foregroundColor: Color(0xFF5A4A53),
-          elevation: 0,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            foregroundColor: const Color(0xFF4A3E45),
-            backgroundColor: const Color(0xFFFFEAF4),
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
+      theme: _themeForLocale(const Locale('en'), baseTheme),
+      builder: (context, child) {
+        final locale = Localizations.maybeLocaleOf(context) ?? const Locale('en');
+        return Theme(
+          data: _themeForLocale(locale, baseTheme),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: const HomePage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+ThemeData _themeForLocale(Locale locale, ThemeData baseTheme) {
+  final code = locale.languageCode.toLowerCase();
+
+  if (code == 'ko') {
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.gowunDodumTextTheme(baseTheme.textTheme),
+      primaryTextTheme: GoogleFonts.gowunDodumTextTheme(
+        baseTheme.primaryTextTheme,
+      ),
+    );
+  }
+
+  if (code == 'ja') {
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.mPlusRounded1cTextTheme(baseTheme.textTheme),
+      primaryTextTheme: GoogleFonts.mPlusRounded1cTextTheme(
+        baseTheme.primaryTextTheme,
+      ),
+    );
+  }
+
+  return baseTheme.copyWith(
+    textTheme: GoogleFonts.nunitoTextTheme(baseTheme.textTheme),
+    primaryTextTheme: GoogleFonts.nunitoTextTheme(baseTheme.primaryTextTheme),
+  );
+}
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _userName;
+  bool _nameDialogOpened = false;
 
   void _openPage(BuildContext context, ReadingType type) {
     Navigator.push(
@@ -71,8 +184,115 @@ class HomePage extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await _AppStorage.loadUserProfile();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _userName = profile.name.isEmpty ? null : profile.name;
+    });
+    if ((_userName == null || _userName!.isEmpty) && !_nameDialogOpened) {
+      _nameDialogOpened = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showNameDialog();
+        }
+      });
+    }
+  }
+
+  Future<void> _showNameDialog() async {
+    final strings = AppStrings.of(context);
+    final controller = TextEditingController();
+    String? errorText;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: Text(strings.namePromptTitle),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: strings.nameFieldHint,
+                      errorText: errorText,
+                    ),
+                    onSubmitted: (_) async {
+                      final name = controller.text.trim();
+                      if (name.isEmpty) {
+                        setModalState(() {
+                          errorText = strings.nameRequired;
+                        });
+                        return;
+                      }
+                      await _AppStorage.saveUserName(name);
+                      if (!mounted) {
+                        return;
+                      }
+                      setState(() {
+                        _userName = name;
+                      });
+                      if (!dialogContext.mounted) {
+                        return;
+                      }
+                      Navigator.of(dialogContext).pop();
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    final name = controller.text.trim();
+                    if (name.isEmpty) {
+                      setModalState(() {
+                        errorText = strings.nameRequired;
+                      });
+                      return;
+                    }
+                    await _AppStorage.saveUserName(name);
+                    if (!mounted) {
+                      return;
+                    }
+                    setState(() {
+                      _userName = name;
+                    });
+                    if (!dialogContext.mounted) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text(strings.saveName),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final headline =
+        _userName == null || _userName!.isEmpty
+            ? strings.homeHeadline
+            : strings.personalizedHomeHeadline(_userName!);
 
     return Scaffold(
       body: _TarotMoodBackground(
@@ -89,19 +309,20 @@ class HomePage extends StatelessWidget {
                   'TAROT DAYS',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFF8E5870),
+                    color: const Color(0xFF7F88B6),
                     letterSpacing: 2.4,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  strings.homeHeadline,
+                  headline,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF623C55),
+                    color: const Color(0xFF5C6692),
                     fontWeight: FontWeight.w900,
                     height: 1.2,
+                    fontSize: 34,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -109,8 +330,9 @@ class HomePage extends StatelessWidget {
                   strings.homeDescription,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF866B78),
+                    color: const Color(0xFF8F98B4),
                     height: 1.45,
+                    fontSize: 18,
                   ),
                 ),
                 const Spacer(flex: 2),
@@ -119,8 +341,8 @@ class HomePage extends StatelessWidget {
                   title: strings.directAnswerMenuTitle,
                   subtitle: strings.directAnswerMenuSubtitle,
                   description: strings.directAnswerMenuDescription,
-                  accentColor: const Color(0xFFB85F7C),
-                  panelColor: const Color(0xFFFFF4F8),
+                  accentColor: const Color(0xFF7D8EDD),
+                  panelColor: const Color(0xFFFCFEFF),
                   artAssetPath: 'assets/imgs/taro_back_2.png',
                   onTap: () => _openPage(context, ReadingType.directAnswer),
                 ),
@@ -130,8 +352,8 @@ class HomePage extends StatelessWidget {
                   title: strings.flowMenuTitle,
                   subtitle: strings.flowMenuSubtitle,
                   description: strings.flowMenuDescription,
-                  accentColor: const Color(0xFF8A4E73),
-                  panelColor: const Color(0xFFFFF2F9),
+                  accentColor: const Color(0xFF7A89C8),
+                  panelColor: const Color(0xFFFBFDFF),
                   artAssetPath: 'assets/imgs/taro_back_3.png',
                   onTap: () => _openPage(context, ReadingType.flow),
                 ),
@@ -141,8 +363,8 @@ class HomePage extends StatelessWidget {
                   title: strings.choiceMenuTitle,
                   subtitle: strings.choiceMenuSubtitle,
                   description: strings.choiceMenuDescription,
-                  accentColor: const Color(0xFF5668AC),
-                  panelColor: const Color(0xFFF3F6FF),
+                  accentColor: const Color(0xFF6A82D9),
+                  panelColor: const Color(0xFFF9FCFF),
                   artAssetPath: 'assets/imgs/taro_back_4.png',
                   onTap: () => _openPage(context, ReadingType.choice),
                 ),
@@ -189,16 +411,16 @@ class _HomeReadingCard extends StatelessWidget {
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color: panelColor.withValues(alpha: 0.80),
+              color: panelColor.withValues(alpha: 0.40),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: const Color(0xFFFFFFFF).withValues(alpha: 0.82),
               ),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x2235374E),
-                  blurRadius: 24,
-                  offset: Offset(0, 14),
+                  color: Color(0x123E5378),
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
                 ),
               ],
             ),
@@ -206,8 +428,8 @@ class _HomeReadingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 58,
-                  height: 84,
+                  width: 64,
+                  height: 92,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: const [
@@ -238,6 +460,7 @@ class _HomeReadingCard extends StatelessWidget {
                           color: accentColor,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.4,
+                          fontSize: 15,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -246,8 +469,9 @@ class _HomeReadingCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: const Color(0xFF493843),
+                          color: const Color(0xFF5A6487),
                           fontWeight: FontWeight.w900,
+                          fontSize: 18,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -259,16 +483,7 @@ class _HomeReadingCard extends StatelessWidget {
                           color: accentColor.withValues(alpha: 0.88),
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFF6E6268),
-                          height: 1.2,
+                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -277,7 +492,7 @@ class _HomeReadingCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  size: 18,
+                  size: 22,
                   color: accentColor.withValues(alpha: 0.88),
                 ),
               ],
@@ -330,6 +545,28 @@ class ReadingPage extends StatelessWidget {
   }
 }
 
+Future<void> _showDailyLimitDialog(
+  BuildContext context,
+  ReadingType type,
+) async {
+  final strings = AppStrings.of(context);
+  await showDialog<void>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(strings.dailyLimitTitle),
+        content: Text(strings.dailyLimitMessage(type.sectionTitle(strings))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(strings.limitConfirm),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class DirectAnswerPage extends StatefulWidget {
   const DirectAnswerPage({super.key, required this.cards});
 
@@ -341,24 +578,53 @@ class DirectAnswerPage extends StatefulWidget {
 
 class _DirectAnswerPageState extends State<DirectAnswerPage> {
   bool _isResultVisible = false;
+  bool _isDrawing = false;
   final List<int> _selectedCardIndices = <int>[];
 
-  void _onDeckCardTap(int index) {
+  Future<void> _onDeckCardTap(int index) async {
     if (_selectedCardIndices.contains(index)) {
       return;
     }
 
+    final nextIndices = [..._selectedCardIndices, index];
     setState(() {
       _selectedCardIndices.add(index);
-      if (_selectedCardIndices.length == 2) {
-        _isResultVisible = true;
-      }
+    });
+
+    if (nextIndices.length != 2) {
+      return;
+    }
+
+    final canUse = await _AppStorage.canUseReading(ReadingType.directAnswer);
+    if (!mounted) {
+      return;
+    }
+    if (!canUse) {
+      setState(() {
+        _selectedCardIndices.removeLast();
+      });
+      await _showDailyLimitDialog(context, ReadingType.directAnswer);
+      return;
+    }
+
+    setState(() {
+      _isDrawing = true;
+    });
+    await _AppStorage.consumeReading(ReadingType.directAnswer);
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isDrawing = false;
+      _isResultVisible = true;
     });
   }
 
   void _resetToFirstStep() {
     setState(() {
       _isResultVisible = false;
+      _isDrawing = false;
       _selectedCardIndices.clear();
     });
   }
@@ -376,7 +642,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
             .map((index) => widget.cards[index])
             .toList(growable: false);
 
-    if (!_isResultVisible) {
+    if (!_isResultVisible && !_isDrawing) {
       return Scaffold(
         body: _TarotMoodBackground(
           palette: _TarotMoodPalettes.directAnswer,
@@ -392,6 +658,15 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
             compactHeader: true,
             scrollable: false,
           ),
+        ),
+      );
+    }
+
+    if (_isDrawing) {
+      return Scaffold(
+        body: _TarotMoodBackground(
+          palette: _TarotMoodPalettes.directAnswer,
+          child: _CardDrawAnimation(totalCards: 2),
         ),
       );
     }
@@ -541,6 +816,32 @@ class FlowReadingPage extends StatefulWidget {
 class _FlowReadingPageState extends State<FlowReadingPage> {
   TarotCard? _selectedCard;
   bool _isResultVisible = false;
+  bool _isDrawing = false;
+
+  Future<void> _startFlowReading(int index) async {
+    final canUse = await _AppStorage.canUseReading(ReadingType.flow);
+    if (!mounted) {
+      return;
+    }
+    if (!canUse) {
+      await _showDailyLimitDialog(context, ReadingType.flow);
+      return;
+    }
+
+    setState(() {
+      _selectedCard = widget.cards[index];
+      _isDrawing = true;
+    });
+    await _AppStorage.consumeReading(ReadingType.flow);
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isDrawing = false;
+      _isResultVisible = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -552,23 +853,27 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
       }
     }
 
-    if (!_isResultVisible) {
+    if (!_isResultVisible && !_isDrawing) {
       return Scaffold(
         body: _TarotMoodBackground(
           palette: _TarotMoodPalettes.flow,
           child: _TarotDeckSelection(
             cardBackAssetPath: 'assets/imgs/taro_back_3.png',
-            onCardTap: (index) {
-              setState(() {
-                _selectedCard = widget.cards[index];
-                _isResultVisible = true;
-              });
-            },
+            onCardTap: _startFlowReading,
             title: strings.flowPickPrompt,
             titleColor: const Color(0xFF6F3556),
             compactHeader: true,
             scrollable: false,
           ),
+        ),
+      );
+    }
+
+    if (_isDrawing) {
+      return Scaffold(
+        body: _TarotMoodBackground(
+          palette: _TarotMoodPalettes.flow,
+          child: _CardDrawAnimation(totalCards: 1),
         ),
       );
     }
@@ -623,6 +928,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
                 onPressed: () {
                   setState(() {
                     _selectedCard = null;
+                    _isDrawing = false;
                     _isResultVisible = false;
                   });
                 },
@@ -756,7 +1062,7 @@ class _TarotMoodBackgroundState extends State<_TarotMoodBackground>
                 Positioned(
                   top: topInset + 18,
                   left: 72,
-                  right: 24,
+                  right: 72,
                   child: Text(
                     widget.headerTitle!,
                     maxLines: 1,
@@ -812,6 +1118,155 @@ class _FlowBackButton extends StatelessWidget {
     );
   }
 }
+
+class _CardDrawAnimation extends StatefulWidget {
+  const _CardDrawAnimation({required this.totalCards});
+
+  final int totalCards;
+
+  @override
+  State<_CardDrawAnimation> createState() => _CardDrawAnimationState();
+}
+
+class _CardDrawAnimationState extends State<_CardDrawAnimation>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    return SafeArea(
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final t = _controller.value;
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 260,
+                  height: 260,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      for (final cloud in _cloudSpecs)
+                        Positioned(
+                          left: cloud.baseX + sin((t * pi * 2) + cloud.phase) * cloud.dx,
+                          top: cloud.baseY + cos((t * pi * 2) + cloud.phase) * cloud.dy,
+                          child: Opacity(
+                            opacity: cloud.opacity,
+                            child: Icon(
+                              Icons.cloud_rounded,
+                              size: cloud.size,
+                              color: Colors.white.withValues(alpha: 0.78),
+                            ),
+                          ),
+                        ),
+                      Transform.scale(
+                        scale: 0.94 + (sin(t * pi * 2) * 0.05),
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                const Color(0xFFFFFFFF).withValues(alpha: 0.92),
+                                const Color(0xFFFFD8F0).withValues(alpha: 0.72),
+                                const Color(0xFFA66EB6).withValues(alpha: 0.38),
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFFC7EA).withValues(alpha: 0.52),
+                                blurRadius: 34,
+                                spreadRadius: 6,
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            '🔮',
+                            style: TextStyle(fontSize: 48),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  strings.crystalBallLabel,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: const Color(0xFF603B56),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    strings.drawingMessage(widget.totalCards),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF7E6675),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _CloudSpec {
+  const _CloudSpec({
+    required this.baseX,
+    required this.baseY,
+    required this.size,
+    required this.dx,
+    required this.dy,
+    required this.opacity,
+    required this.phase,
+  });
+
+  final double baseX;
+  final double baseY;
+  final double size;
+  final double dx;
+  final double dy;
+  final double opacity;
+  final double phase;
+}
+
+const List<_CloudSpec> _cloudSpecs = <_CloudSpec>[
+  _CloudSpec(baseX: 16, baseY: 30, size: 52, dx: 18, dy: 10, opacity: 0.62, phase: 0.1),
+  _CloudSpec(baseX: 180, baseY: 26, size: 48, dx: 16, dy: 12, opacity: 0.58, phase: 1.3),
+  _CloudSpec(baseX: 42, baseY: 160, size: 58, dx: 14, dy: 11, opacity: 0.64, phase: 2.1),
+  _CloudSpec(baseX: 172, baseY: 168, size: 54, dx: 18, dy: 12, opacity: 0.56, phase: 2.8),
+  _CloudSpec(baseX: 90, baseY: 8, size: 44, dx: 12, dy: 8, opacity: 0.48, phase: 0.7),
+  _CloudSpec(baseX: 92, baseY: 206, size: 46, dx: 10, dy: 9, opacity: 0.52, phase: 1.9),
+];
 
 class _SparkleSpec {
   const _SparkleSpec({
@@ -926,6 +1381,47 @@ class ChoiceReadingPage extends StatefulWidget {
 class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
   final List<int> _selectedCardIndices = <int>[];
   bool _isResultVisible = false;
+  bool _isDrawing = false;
+
+  Future<void> _onChoiceCardTap(int index) async {
+    if (_selectedCardIndices.contains(index)) {
+      return;
+    }
+
+    final nextIndices = [..._selectedCardIndices, index];
+    setState(() {
+      _selectedCardIndices.add(index);
+    });
+
+    if (nextIndices.length != 3) {
+      return;
+    }
+
+    final canUse = await _AppStorage.canUseReading(ReadingType.choice);
+    if (!mounted) {
+      return;
+    }
+    if (!canUse) {
+      setState(() {
+        _selectedCardIndices.removeLast();
+      });
+      await _showDailyLimitDialog(context, ReadingType.choice);
+      return;
+    }
+
+    setState(() {
+      _isDrawing = true;
+    });
+    await _AppStorage.consumeReading(ReadingType.choice);
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isDrawing = false;
+      _isResultVisible = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -945,23 +1441,13 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
             .map((index) => widget.cards[index])
             .toList(growable: false);
 
-    if (!_isResultVisible) {
+    if (!_isResultVisible && !_isDrawing) {
       return Scaffold(
         body: _TarotMoodBackground(
           palette: _TarotMoodPalettes.choice,
           child: _TarotDeckSelection(
             cardBackAssetPath: 'assets/imgs/taro_back_4.png',
-            onCardTap: (index) {
-              if (_selectedCardIndices.contains(index)) {
-                return;
-              }
-              setState(() {
-                _selectedCardIndices.add(index);
-                if (_selectedCardIndices.length == 3) {
-                  _isResultVisible = true;
-                }
-              });
-            },
+            onCardTap: _onChoiceCardTap,
             title:
                 _selectedCardIndices.isEmpty
                     ? strings.choicePickPrompt
@@ -971,6 +1457,15 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
             compactHeader: true,
             scrollable: false,
           ),
+        ),
+      );
+    }
+
+    if (_isDrawing) {
+      return Scaffold(
+        body: _TarotMoodBackground(
+          palette: _TarotMoodPalettes.choice,
+          child: _CardDrawAnimation(totalCards: 3),
         ),
       );
     }
@@ -1006,6 +1501,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
                 onPressed: () {
                   setState(() {
                     _selectedCardIndices.clear();
+                    _isDrawing = false;
                     _isResultVisible = false;
                   });
                 },
@@ -1114,35 +1610,36 @@ class _CardBackPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 8,
-          top: 6,
-          child: Transform.rotate(
-            angle: -0.12,
-            child: _TarotCardArtwork(
-              imageAssetPath: imageAssetPath,
-              height: 68,
+    return Center(
+      child: SizedBox(
+        width: 64,
+        height: 86,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Transform.translate(
+              offset: const Offset(5, 4),
+              child: Transform.rotate(
+                angle: -0.12,
+                child: _TarotCardArtwork(
+                  imageAssetPath: imageAssetPath,
+                  height: 68,
+                ),
+              ),
             ),
-          ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: accentColor.withValues(alpha: 0.28)),
+              ),
+              child: _TarotCardArtwork(
+                imageAssetPath: imageAssetPath,
+                height: 72,
+              ),
+            ),
+          ],
         ),
-        Positioned(
-          left: 0,
-          top: 0,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: accentColor.withValues(alpha: 0.28)),
-            ),
-            child: _TarotCardArtwork(
-              imageAssetPath: imageAssetPath,
-              height: 72,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -1273,18 +1770,18 @@ class _TarotMoodPalettes {
 
   static const home = _TarotMoodPalette(
     gradientColors: [
-      Color(0xFFFFF6FA),
-      Color(0xFFFBE3EF),
-      Color(0xFFF1E7FF),
-      Color(0xFFE8F4FF),
+      Color(0xFFFFFFFF),
+      Color(0xFFF4F8FF),
+      Color(0xFFF7F4FF),
+      Color(0xFFFCFEFF),
     ],
     sparkles: _sharedSparkles,
-    sparkleCenterColor: Color(0xFFFFE2F0),
-    backButtonTint: Color(0xFF6E3E55),
-    backButtonBackground: Color(0xFFFFFAFC),
-    glowColorBottom: Color(0xFFF5F8FF),
-    glowAlphaTop: 0.58,
-    glowAlphaBottom: 0.44,
+    sparkleCenterColor: Color(0xFFF1F6FF),
+    backButtonTint: Color(0xFF66739B),
+    backButtonBackground: Color(0xFFFFFFFF),
+    glowColorBottom: Color(0xFFF2F8FF),
+    glowAlphaTop: 0.68,
+    glowAlphaBottom: 0.28,
   );
 }
 

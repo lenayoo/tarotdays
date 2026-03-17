@@ -56,12 +56,48 @@ class AppStrings {
     return 'What kind of answer are you looking for?';
   }
 
+  String personalizedHomeHeadline(String name) {
+    if (isKorean) return '$name♥️의 \n오늘을 알려드릴게요.';
+    if (isJapanese) return '$name♥️の\n今日を教えてあげます。';
+    return '$name♥️ \n I will tell you about your day.';
+  }
+
   String get homeDescription {
-    if (isKorean) return '질문에 맞는 리딩을 고르면 오늘의 방향이 더 선명해집니다.';
+    if (isKorean) return '질문에 맞는 리딩을 고르면 \n오늘의 방향이 더 선명해집니다.';
     if (isJapanese) {
-      return '質問に合ったリーディングを選ぶと、今日の流れがよりはっきり見えてきます。';
+      return '質問に合ったリーディングを選ぶと、\n今日の流れがよりはっきり見えてきます。';
     }
-    return 'Choose the reading that fits your question and today’s direction will feel clearer.';
+    return 'Choose the reading that fits your question \n and today’s direction will feel clearer.';
+  }
+
+  String get namePromptTitle {
+    if (isKorean) return '당신의 이름을 알려주세요';
+    if (isJapanese) return 'あなたのお名前を教えてください';
+    return 'Tell me your name';
+  }
+
+  String get namePromptDescription {
+    if (isKorean) return '앞으로 리딩 화면에서 이 이름으로 불러드릴게요.';
+    if (isJapanese) return 'これからのリーディング画面では、このお名前でお呼びします。';
+    return 'I will use this name in your readings from now on.';
+  }
+
+  String get nameFieldHint {
+    if (isKorean) return '이름';
+    if (isJapanese) return 'お名前';
+    return 'Name';
+  }
+
+  String get saveName {
+    if (isKorean) return '시작하기';
+    if (isJapanese) return '始める';
+    return 'Continue';
+  }
+
+  String get nameRequired {
+    if (isKorean) return '이름을 입력해주세요.';
+    if (isJapanese) return 'お名前を入力してください。';
+    return 'Please enter your name.';
   }
 
   String get directAnswerMenuTitle {
@@ -79,9 +115,9 @@ class AppStrings {
   }
 
   String get flowMenuTitle {
-    if (isKorean) return '흐름 리딩';
-    if (isJapanese) return '流れのリーディング';
-    return 'Flow Reading';
+    if (isKorean) return '흐름';
+    if (isJapanese) return '流れ';
+    return 'Flow';
   }
 
   String get flowMenuSubtitle => 'Single Card Flow';
@@ -98,7 +134,11 @@ class AppStrings {
     return 'Choice Comparison';
   }
 
-  String get choiceMenuSubtitle => 'Three Ways';
+  String get choiceMenuSubtitle {
+    if (isKorean) return '세 가지 선택';
+    if (isJapanese) return '3つの選択';
+    return 'Three Choices';
+  }
 
   String get choiceMenuDescription {
     if (isKorean) return '세 방향의 흐름을 비교해 더 맞는 선택을 봅니다.';
@@ -172,16 +212,44 @@ class AppStrings {
     return 'Choose a card while thinking about your current flow.';
   }
 
-  String get flowMoodLabel {
-    if (isKorean) return '부드러운 핑크 그라데이션 · 떠다니는 반짝임';
-    if (isJapanese) return 'やわらかなピンクのグラデーション · 浮かぶきらめき';
-    return 'soft pink gradient · floating sparkles';
-  }
-
   String get redrawCard {
     if (isKorean) return '다시 뽑기';
     if (isJapanese) return '引き直す';
     return 'Draw Again';
+  }
+
+  String drawingMessage(int totalCards) {
+    if (isKorean) {
+      return '$totalCards장의 카드가 당신을 향해 모이고 있어요...';
+    }
+    if (isJapanese) {
+      return '$totalCards枚のカードがあなたのもとへ集まっています...';
+    }
+    return '$totalCards card${totalCards == 1 ? '' : 's'} are gathering for you...';
+  }
+
+  String get crystalBallLabel {
+    if (isKorean) return '카드를 읽는 중';
+    if (isJapanese) return 'カードを読み取っています';
+    return 'Reading the cards';
+  }
+
+  String get dailyLimitTitle {
+    if (isKorean) return '오늘의 리딩 횟수를 모두 사용했어요';
+    if (isJapanese) return '今日のリーディング回数を使い切りました';
+    return 'You have used all of today’s readings';
+  }
+
+  String dailyLimitMessage(String sectionTitle) {
+    if (isKorean) return '$sectionTitle 리딩은 하루에 2번까지만 가능해요. 내일 다시 뽑아보세요.';
+    if (isJapanese) return '$sectionTitle のリーディングは1日に2回までです。明日また引いてみてください。';
+    return '$sectionTitle readings are limited to two times per day. Please try again tomorrow.';
+  }
+
+  String get limitConfirm {
+    if (isKorean) return '확인';
+    if (isJapanese) return '確認';
+    return 'OK';
   }
 
   String get choiceError {
@@ -225,15 +293,9 @@ class AppStrings {
   }
 
   String get choiceResultHeadline {
-    if (isKorean) return '세 방향의 흐름을 비교해보세요';
-    if (isJapanese) return '3つの流れを比べてみましょう';
-    return 'Compare the flow of the three paths';
-  }
-
-  String get choiceMoodLabel {
-    if (isKorean) return '푸른 안개 · 라일락 갈래 스프레드';
-    if (isJapanese) return '青い霧 · ライラックの分岐スプレッド';
-    return 'blue mist · lilac branching spread';
+    if (isKorean) return '세가지의 선택을 비교해보세요';
+    if (isJapanese) return '3つの選択を比べてください。';
+    return 'Compare the flow of three choices';
   }
 
   String cardLabel(String cardName) {
