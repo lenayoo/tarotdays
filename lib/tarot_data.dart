@@ -55,6 +55,38 @@ class TarotCard {
   final String choiceOption;
   final AnswerType answerType;
 
+  static const List<String> _assetNames = <String>[
+    '00_the_fool',
+    '01_the_magician',
+    '02_the_high_priestess',
+    '03_the_empress',
+    '04_the_emperor',
+    '05_the_hierophant',
+    '06_the_lovers',
+    '07_chariot',
+    '08_strength',
+    '09_the_hermit',
+    '10_wheel_of_fortune',
+    '11_justice',
+    '12_the_hanged_man',
+    '13_death',
+    '14_temperance',
+    '15_the_devil',
+    '16_the_tower',
+    '17_the_star',
+    '18_the_moon',
+    '19_the_sun',
+    '20_judgement',
+    '21_the_world',
+  ];
+
+  String get imageAssetPath {
+    if (id < 0 || id >= _assetNames.length) {
+      return 'assets/imgs/taro_back_2.png';
+    }
+    return 'assets/imgs/${_assetNames[id]}.webp';
+  }
+
   factory TarotCard.fromJson(Map<String, dynamic> json) {
     final fallback = AppStrings.fromLocale(const Locale('en'));
 

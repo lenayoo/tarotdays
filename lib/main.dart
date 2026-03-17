@@ -320,107 +320,41 @@ class DirectAnswerPage extends StatefulWidget {
 }
 
 class _DirectAnswerPageState extends State<DirectAnswerPage> {
-  final Random _random = Random();
-  TarotCard? _yesCard;
-  TarotCard? _noCard;
   bool _isResultVisible = false;
-  int? _firstSelectedCardIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _pickCards();
-  }
-
-  AnswerType _inferFromText(String text) {
-    final normalized = text.toLowerCase();
-    if (normalized.contains('yes') ||
-        normalized.contains('positive') ||
-        normalized.contains('very positive') ||
-        normalized.contains('긍정') ||
-        normalized.contains('승리') ||
-        normalized.contains('성공') ||
-        normalized.contains('はい') ||
-        normalized.contains('良い') ||
-        normalized.contains('好転') ||
-        normalized.contains('成功')) {
-      return AnswerType.yes;
-    }
-    if (normalized.contains('no') ||
-        normalized.contains('negative') ||
-        normalized.contains('caution') ||
-        normalized.contains('보류') ||
-        normalized.contains('부정') ||
-        normalized.contains('주의') ||
-        normalized.contains('いいえ') ||
-        normalized.contains('注意') ||
-        normalized.contains('延期')) {
-      return AnswerType.no;
-    }
-    return AnswerType.neutral;
-  }
-
-  TarotCard? _pickOneByType(AnswerType type) {
-    var candidates = widget.cards
-        .where((card) => card.answerType == type)
-        .toList(growable: false);
-
-    if (candidates.isEmpty) {
-      candidates = widget.cards
-          .where((card) => _inferFromText(card.directAnswer) == type)
-          .toList(growable: false);
-    }
-
-    if (candidates.isEmpty && widget.cards.isNotEmpty) {
-      candidates = List<TarotCard>.from(widget.cards, growable: false);
-    }
-
-    if (candidates.isEmpty) {
-      return null;
-    }
-    return candidates[_random.nextInt(candidates.length)];
-  }
-
-  void _pickCards() {
-    setState(() {
-      _yesCard = _pickOneByType(AnswerType.yes);
-      _noCard = _pickOneByType(AnswerType.no);
-    });
-  }
+  final List<int> _selectedCardIndices = <int>[];
 
   void _onDeckCardTap(int index) {
-    if (_firstSelectedCardIndex == null) {
-      setState(() {
-        _firstSelectedCardIndex = index;
-      });
+    if (_selectedCardIndices.contains(index)) {
       return;
     }
 
-    if (_firstSelectedCardIndex == index) {
-      return;
-    }
-
-    _pickCards();
     setState(() {
-      _isResultVisible = true;
+      _selectedCardIndices.add(index);
+      if (_selectedCardIndices.length == 2) {
+        _isResultVisible = true;
+      }
     });
   }
 
   void _resetToFirstStep() {
     setState(() {
       _isResultVisible = false;
-      _firstSelectedCardIndex = null;
+      _selectedCardIndices.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
-    final yesCard = _yesCard;
-    final noCard = _noCard;
-    if (yesCard == null || noCard == null) {
+    if (widget.cards.length < 2) {
       return _ErrorPage(message: strings.cardDataNotFound);
     }
+
+    final selectedCards =
+        _selectedCardIndices
+            .where((index) => index >= 0 && index < widget.cards.length)
+            .map((index) => widget.cards[index])
+            .toList(growable: false);
 
     if (!_isResultVisible) {
       return Scaffold(
@@ -428,14 +362,11 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
           palette: _TarotMoodPalettes.directAnswer,
           child: _TarotDeckSelection(
             title:
-                _firstSelectedCardIndex == null
+                _selectedCardIndices.isEmpty
                     ? strings.directFirstPickPrompt
                     : strings.directSecondPickPrompt,
             cardBackAssetPath: 'assets/imgs/taro_back_2.png',
-            disabledCardIndices:
-                _firstSelectedCardIndex == null
-                    ? const <int>{}
-                    : <int>{_firstSelectedCardIndex!},
+            disabledCardIndices: _selectedCardIndices.toSet(),
             onCardTap: _onDeckCardTap,
             titleColor: const Color(0xFF6E3E55),
             compactHeader: true,
@@ -499,14 +430,14 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
                     children: [
                       _DirectAnswerSection(
                         title: strings.directYesCaseTitle,
-                        card: yesCard,
+                        card: selectedCards[0],
                         accentColor: const Color(0xFF5D8A72),
                         panelColor: const Color(0xFFF4FBF6),
                       ),
                       const SizedBox(height: 14),
                       _DirectAnswerSection(
                         title: strings.directNoCaseTitle,
-                        card: noCard,
+                        card: selectedCards[1],
                         accentColor: const Color(0xFFB45B74),
                         panelColor: const Color(0xFFFFF5F8),
                       ),
@@ -563,6 +494,13 @@ class _DirectAnswerSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: _TarotCardArtwork(
+              imageAssetPath: card.imageAssetPath,
+              height: 220,
+            ),
+          ),
+          const SizedBox(height: 14),
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -617,35 +555,17 @@ class FlowReadingPage extends StatefulWidget {
 }
 
 class _FlowReadingPageState extends State<FlowReadingPage> {
-  final Random _random = Random();
-  TarotCard? _card;
+  TarotCard? _selectedCard;
   bool _isResultVisible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _pickCard();
-  }
-
-  void _pickCard() {
-    setState(() {
-      _card = widget.cards[_random.nextInt(widget.cards.length)];
-    });
-  }
-
-  void _showResult() {
-    _pickCard();
-    setState(() {
-      _isResultVisible = true;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
-    final card = _card;
+    final card = _selectedCard;
     if (card == null) {
-      return _ErrorPage(message: strings.drawCardFailed);
+      if (_isResultVisible) {
+        return _ErrorPage(message: strings.drawCardFailed);
+      }
     }
 
     if (!_isResultVisible) {
@@ -654,7 +574,12 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
           palette: _TarotMoodPalettes.flow,
           child: _TarotDeckSelection(
             cardBackAssetPath: 'assets/imgs/taro_back_3.png',
-            onCardTap: (_) => _showResult(),
+            onCardTap: (index) {
+              setState(() {
+                _selectedCard = widget.cards[index];
+                _isResultVisible = true;
+              });
+            },
             title: strings.flowPickPrompt,
             titleColor: const Color(0xFF6F3556),
             compactHeader: true,
@@ -693,6 +618,11 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
                 ),
                 child: Column(
                   children: [
+                    _TarotCardArtwork(
+                      imageAssetPath: card!.imageAssetPath,
+                      height: 250,
+                    ),
+                    const SizedBox(height: 16),
                     Text(
                       card.name,
                       textAlign: TextAlign.center,
@@ -747,7 +677,12 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _pickCard,
+                onPressed: () {
+                  setState(() {
+                    _selectedCard = null;
+                    _isResultVisible = false;
+                  });
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFE6F2),
                   foregroundColor: const Color(0xFF6F3556),
@@ -1023,37 +958,8 @@ class ChoiceReadingPage extends StatefulWidget {
 }
 
 class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
-  final Random _random = Random();
-  List<TarotCard> _drawnCards = const <TarotCard>[];
+  final List<int> _selectedCardIndices = <int>[];
   bool _isResultVisible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _startReading();
-  }
-
-  void _startReading() {
-    if (widget.cards.length < 3) {
-      final strings = AppStrings.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(strings.choiceSnackBar)),
-      );
-      return;
-    }
-
-    final pool = List<TarotCard>.from(widget.cards)..shuffle(_random);
-    setState(() {
-      _drawnCards = pool.take(3).toList();
-    });
-  }
-
-  void _showResult() {
-    _startReading();
-    setState(() {
-      _isResultVisible = true;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1067,6 +973,11 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
       strings.choiceBPrefix,
       strings.choiceCPrefix,
     ];
+    final selectedCards =
+        _selectedCardIndices
+            .where((index) => index >= 0 && index < widget.cards.length)
+            .map((index) => widget.cards[index])
+            .toList(growable: false);
 
     if (!_isResultVisible) {
       return Scaffold(
@@ -1074,8 +985,22 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
           palette: _TarotMoodPalettes.choice,
           child: _TarotDeckSelection(
             cardBackAssetPath: 'assets/imgs/taro_back_4.png',
-            onCardTap: (_) => _showResult(),
-            title: strings.choicePickPrompt,
+            onCardTap: (index) {
+              if (_selectedCardIndices.contains(index)) {
+                return;
+              }
+              setState(() {
+                _selectedCardIndices.add(index);
+                if (_selectedCardIndices.length == 3) {
+                  _isResultVisible = true;
+                }
+              });
+            },
+            title:
+                _selectedCardIndices.isEmpty
+                    ? strings.choicePickPrompt
+                    : strings.choicePickProgress(_selectedCardIndices.length),
+            disabledCardIndices: _selectedCardIndices.toSet(),
             titleColor: const Color(0xFF46558D),
             compactHeader: true,
             scrollable: false,
@@ -1136,11 +1061,11 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (int i = 0; i < _drawnCards.length; i++)
+                      for (int i = 0; i < selectedCards.length; i++)
                         _ChoiceResultCard(
                           index: i + 1,
                           title: choices[i],
-                          card: _drawnCards[i],
+                          card: selectedCards[i],
                         ),
                     ],
                   ),
@@ -1148,7 +1073,12 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _startReading,
+                onPressed: () {
+                  setState(() {
+                    _selectedCardIndices.clear();
+                    _isResultVisible = false;
+                  });
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEEF1FF),
                   foregroundColor: const Color(0xFF46558D),
@@ -1207,6 +1137,13 @@ class _ChoiceResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: _TarotCardArtwork(
+              imageAssetPath: card.imageAssetPath,
+              height: 220,
+            ),
+          ),
+          const SizedBox(height: 14),
           Text(
             '$index. $title',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1232,6 +1169,36 @@ class _ChoiceResultCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TarotCardArtwork extends StatelessWidget {
+  const _TarotCardArtwork({
+    required this.imageAssetPath,
+    this.height = 220,
+  });
+
+  final String imageAssetPath;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      constraints: BoxConstraints(maxWidth: height * 0.62),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33261325),
+            blurRadius: 18,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.asset(imageAssetPath, fit: BoxFit.cover),
     );
   }
 }

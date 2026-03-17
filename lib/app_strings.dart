@@ -136,6 +136,16 @@ class AppStrings {
     return 'Think of the other answer and choose a card.';
   }
 
+  String directPickProgress(int selectedCount) {
+    if (isKorean) {
+      return '${selectedCount + 1}번째 카드를 골라주세요.';
+    }
+    if (isJapanese) {
+      return '${selectedCount + 1}枚目のカードを選んでください。';
+    }
+    return 'Choose card ${selectedCount + 1}.';
+  }
+
   String get directResultHeadline {
     if (isKorean) return 'YES / NO의 결을 비교해보세요';
     if (isJapanese) return 'YES / NO の流れを比べてみましょう';
@@ -218,6 +228,16 @@ class AppStrings {
     if (isKorean) return '세 갈래 흐름 중 더 끌리는 방향을 골라주세요.';
     if (isJapanese) return '3つの流れの中から、より惹かれる方向を選んでください。';
     return 'Choose the direction that pulls you most among the three paths.';
+  }
+
+  String choicePickProgress(int selectedCount) {
+    if (isKorean) {
+      return '${selectedCount + 1}/3번째 카드를 골라주세요.';
+    }
+    if (isJapanese) {
+      return '${selectedCount + 1}/3枚目のカードを選んでください。';
+    }
+    return 'Choose card ${selectedCount + 1} of 3.';
   }
 
   String get choiceResultHeadline {
