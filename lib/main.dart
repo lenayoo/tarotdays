@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_strings.dart';
 import 'tarot_data.dart';
@@ -18,6 +19,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tarot Days',
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ko'),
+        Locale('ja'),
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFFFC9DE),
@@ -110,7 +121,7 @@ class HomePage extends StatelessWidget {
                   description: strings.directAnswerMenuDescription,
                   accentColor: const Color(0xFFB85F7C),
                   panelColor: const Color(0xFFFFF4F8),
-                  icon: Icons.auto_awesome_rounded,
+                  artAssetPath: 'assets/imgs/taro_back_2.png',
                   onTap: () => _openPage(context, ReadingType.directAnswer),
                 ),
                 const SizedBox(height: 12),
@@ -121,7 +132,7 @@ class HomePage extends StatelessWidget {
                   description: strings.flowMenuDescription,
                   accentColor: const Color(0xFF8A4E73),
                   panelColor: const Color(0xFFFFF2F9),
-                  icon: Icons.nights_stay_rounded,
+                  artAssetPath: 'assets/imgs/taro_back_3.png',
                   onTap: () => _openPage(context, ReadingType.flow),
                 ),
                 const SizedBox(height: 12),
@@ -132,7 +143,7 @@ class HomePage extends StatelessWidget {
                   description: strings.choiceMenuDescription,
                   accentColor: const Color(0xFF5668AC),
                   panelColor: const Color(0xFFF3F6FF),
-                  icon: Icons.stacked_line_chart_rounded,
+                  artAssetPath: 'assets/imgs/taro_back_4.png',
                   onTap: () => _openPage(context, ReadingType.choice),
                 ),
                 const Spacer(flex: 3),
@@ -153,7 +164,7 @@ class _HomeReadingCard extends StatelessWidget {
     required this.description,
     required this.accentColor,
     required this.panelColor,
-    required this.icon,
+    required this.artAssetPath,
     required this.onTap,
   });
 
@@ -163,7 +174,7 @@ class _HomeReadingCard extends StatelessWidget {
   final String description;
   final Color accentColor;
   final Color panelColor;
-  final IconData icon;
+  final String artAssetPath;
   final VoidCallback onTap;
 
   @override
@@ -195,15 +206,24 @@ class _HomeReadingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 58,
+                  height: 84,
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x22342A32),
+                        blurRadius: 12,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: accentColor, size: 24),
+                  child: _CardBackPreview(
+                    imageAssetPath: artAssetPath,
+                    accentColor: accentColor,
+                  ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,50 +399,14 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
     return Scaffold(
       body: _TarotMoodBackground(
         palette: _TarotMoodPalettes.directAnswer,
+        headerTitle: strings.directResultHeadline,
+        headerTitleColor: const Color(0xFF6E3E55),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF8FA).withValues(alpha: 0.78),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: const Color(0xFFFFFFFF).withValues(alpha: 0.75),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x26375A46),
-                      blurRadius: 22,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  strings.directResultHeadline,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF6E3E55),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                strings.directMoodLabel,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF91717E),
-                  letterSpacing: 1.0,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 6),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -480,7 +464,7 @@ class _DirectAnswerSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: panelColor.withValues(alpha: 0.82),
+        color: panelColor.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
         boxShadow: const [
@@ -592,58 +576,17 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
     return Scaffold(
       body: _TarotMoodBackground(
         palette: _TarotMoodPalettes.flow,
+        headerTitle: card!.name,
+        headerTitleColor: const Color(0xFF6F3556),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFDF3F8).withValues(alpha: 0.78),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: const Color(0xFFFFFFFF).withValues(alpha: 0.75),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x26A63C77),
-                      blurRadius: 22,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _TarotCardArtwork(
-                      imageAssetPath: card!.imageAssetPath,
-                      height: 250,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      card.name,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        color: const Color(0xFF6F3556),
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      strings.flowMoodLabel,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF9A6A86),
-                        letterSpacing: 1.1,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+              Center(
+                child: _TarotCardArtwork(
+                  imageAssetPath: card.imageAssetPath,
+                  height: 250,
                 ),
               ),
               const SizedBox(height: 18),
@@ -651,10 +594,10 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBFD).withValues(alpha: 0.72),
+                    color: const Color(0xFFFFFBFD).withValues(alpha: 0.68),
                     borderRadius: BorderRadius.circular(26),
                     border: Border.all(
-                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.78),
+                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.82),
                     ),
                     boxShadow: const [
                       BoxShadow(
@@ -703,12 +646,16 @@ class _TarotMoodBackground extends StatefulWidget {
     required this.palette,
     this.showBackButton = true,
     this.topContentOffset = 56,
+    this.headerTitle,
+    this.headerTitleColor,
   });
 
   final Widget child;
   final _TarotMoodPalette palette;
   final bool showBackButton;
   final double topContentOffset;
+  final String? headerTitle;
+  final Color? headerTitleColor;
 
   @override
   State<_TarotMoodBackground> createState() => _TarotMoodBackgroundState();
@@ -803,6 +750,25 @@ class _TarotMoodBackgroundState extends State<_TarotMoodBackground>
                     onPressed: () => Navigator.of(context).pop(),
                     tintColor: widget.palette.backButtonTint,
                     backgroundColor: widget.palette.backButtonBackground,
+                  ),
+                ),
+              if (widget.headerTitle != null)
+                Positioned(
+                  top: topInset + 18,
+                  left: 72,
+                  right: 24,
+                  child: Text(
+                    widget.headerTitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color:
+                          widget.headerTitleColor ??
+                          widget.palette.backButtonTint,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
             ],
@@ -1012,50 +978,14 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
     return Scaffold(
       body: _TarotMoodBackground(
         palette: _TarotMoodPalettes.choice,
+        headerTitle: strings.choiceResultHeadline,
+        headerTitleColor: const Color(0xFF46558D),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F8FF).withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: const Color(0xFFFFFFFF).withValues(alpha: 0.78),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x263F4F88),
-                      blurRadius: 22,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  strings.choiceResultHeadline,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF46558D),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                strings.choiceMoodLabel,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF7380A5),
-                  letterSpacing: 1.0,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 6),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -1123,7 +1053,7 @@ class _ChoiceResultCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: panel.withValues(alpha: 0.82),
+        color: panel.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
         boxShadow: const [
@@ -1169,6 +1099,50 @@ class _ChoiceResultCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CardBackPreview extends StatelessWidget {
+  const _CardBackPreview({
+    required this.imageAssetPath,
+    required this.accentColor,
+  });
+
+  final String imageAssetPath;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: 8,
+          top: 6,
+          child: Transform.rotate(
+            angle: -0.12,
+            child: _TarotCardArtwork(
+              imageAssetPath: imageAssetPath,
+              height: 68,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          top: 0,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: accentColor.withValues(alpha: 0.28)),
+            ),
+            child: _TarotCardArtwork(
+              imageAssetPath: imageAssetPath,
+              height: 72,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

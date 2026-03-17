@@ -136,16 +136,6 @@ class AppStrings {
     return 'Think of the other answer and choose a card.';
   }
 
-  String directPickProgress(int selectedCount) {
-    if (isKorean) {
-      return '${selectedCount + 1}번째 카드를 골라주세요.';
-    }
-    if (isJapanese) {
-      return '${selectedCount + 1}枚目のカードを選んでください。';
-    }
-    return 'Choose card ${selectedCount + 1}.';
-  }
-
   String get directResultHeadline {
     if (isKorean) return 'YES / NO의 결을 비교해보세요';
     if (isJapanese) return 'YES / NO の流れを比べてみましょう';
@@ -192,12 +182,6 @@ class AppStrings {
     if (isKorean) return '다시 뽑기';
     if (isJapanese) return '引き直す';
     return 'Draw Again';
-  }
-
-  String get choiceSnackBar {
-    if (isKorean) return '카드가 3장 미만이라 선택지 리딩을 할 수 없습니다.';
-    if (isJapanese) return 'カードが3枚未満のため、選択肢リーディングはできません。';
-    return 'Choice reading needs at least 3 cards.';
   }
 
   String get choiceError {
