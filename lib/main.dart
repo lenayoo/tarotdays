@@ -408,6 +408,11 @@ class _HomeReadingCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(28),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          focusColor: Colors.transparent,
+          overlayColor: WidgetStatePropertyAll<Color>(Colors.transparent),
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
@@ -428,7 +433,7 @@ class _HomeReadingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 64,
+                  width: 74,
                   height: 92,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
@@ -445,7 +450,7 @@ class _HomeReadingCard extends StatelessWidget {
                     accentColor: accentColor,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 30),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1612,7 +1617,7 @@ class _CardBackPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        width: 64,
+        width: 72,
         height: 86,
         child: Stack(
           alignment: Alignment.center,
@@ -1624,6 +1629,7 @@ class _CardBackPreview extends StatelessWidget {
                 child: _TarotCardArtwork(
                   imageAssetPath: imageAssetPath,
                   height: 68,
+                  widthFactor: 0.72,
                 ),
               ),
             ),
@@ -1635,6 +1641,7 @@ class _CardBackPreview extends StatelessWidget {
               child: _TarotCardArtwork(
                 imageAssetPath: imageAssetPath,
                 height: 72,
+                widthFactor: 0.72,
               ),
             ),
           ],
@@ -1648,16 +1655,18 @@ class _TarotCardArtwork extends StatelessWidget {
   const _TarotCardArtwork({
     required this.imageAssetPath,
     this.height = 220,
+    this.widthFactor = 0.62,
   });
 
   final String imageAssetPath;
   final double height;
+  final double widthFactor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      constraints: BoxConstraints(maxWidth: height * 0.62),
+      constraints: BoxConstraints(maxWidth: height * widthFactor),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
