@@ -343,7 +343,7 @@ class _HomePageState extends State<HomePage> {
                   description: strings.directAnswerMenuDescription,
                   accentColor: const Color(0xFF7D8EDD),
                   panelColor: const Color(0xFFFCFEFF),
-                  artAssetPath: 'assets/imgs/taro_back_2.png',
+                  artAssetPath: 'assets/imgs/taro_back_1.webp',
                   onTap: () => _openPage(context, ReadingType.directAnswer),
                 ),
                 const SizedBox(height: 12),
@@ -354,7 +354,7 @@ class _HomePageState extends State<HomePage> {
                   description: strings.flowMenuDescription,
                   accentColor: const Color(0xFF7A89C8),
                   panelColor: const Color(0xFFFBFDFF),
-                  artAssetPath: 'assets/imgs/taro_back_3.png',
+                  artAssetPath: 'assets/imgs/taro_back_2.webp',
                   onTap: () => _openPage(context, ReadingType.flow),
                 ),
                 const SizedBox(height: 12),
@@ -365,7 +365,7 @@ class _HomePageState extends State<HomePage> {
                   description: strings.choiceMenuDescription,
                   accentColor: const Color(0xFF6A82D9),
                   panelColor: const Color(0xFFF9FCFF),
-                  artAssetPath: 'assets/imgs/taro_back_4.png',
+                  artAssetPath: 'assets/imgs/taro_back_3.webp',
                   onTap: () => _openPage(context, ReadingType.choice),
                 ),
                 const Spacer(flex: 3),
@@ -656,7 +656,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
                 _selectedCardIndices.isEmpty
                     ? strings.directFirstPickPrompt
                     : strings.directSecondPickPrompt,
-            cardBackAssetPath: 'assets/imgs/taro_back_2.png',
+            cardBackAssetPath: 'assets/imgs/taro_back_1.webp',
             disabledCardIndices: _selectedCardIndices.toSet(),
             onCardTap: _onDeckCardTap,
             titleColor: const Color(0xFF6E3E55),
@@ -863,7 +863,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
         body: _TarotMoodBackground(
           palette: _TarotMoodPalettes.flow,
           child: _TarotDeckSelection(
-            cardBackAssetPath: 'assets/imgs/taro_back_3.png',
+            cardBackAssetPath: 'assets/imgs/taro_back_2.webp',
             onCardTap: _startFlowReading,
             title: strings.flowPickPrompt,
             titleColor: const Color(0xFF6F3556),
@@ -1451,7 +1451,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
         body: _TarotMoodBackground(
           palette: _TarotMoodPalettes.choice,
           child: _TarotDeckSelection(
-            cardBackAssetPath: 'assets/imgs/taro_back_4.png',
+            cardBackAssetPath: 'assets/imgs/taro_back_3.webp',
             onCardTap: _onChoiceCardTap,
             title:
                 _selectedCardIndices.isEmpty

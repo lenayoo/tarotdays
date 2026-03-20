@@ -82,7 +82,7 @@ class TarotCard {
 
   String get imageAssetPath {
     if (id < 0 || id >= _assetNames.length) {
-      return 'assets/imgs/taro_back_2.png';
+      return 'assets/imgs/taro_back_1.webp';
     }
     return 'assets/imgs/${_assetNames[id]}.webp';
   }
