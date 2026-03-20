@@ -207,14 +207,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _showNameDialog() async {
+  Future<void> _showNameDialog({bool canDismiss = false}) async {
     final strings = AppStrings.of(context);
-    final controller = TextEditingController();
+    final controller = TextEditingController(text: _userName ?? '');
     String? errorText;
 
     await showDialog<void>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: canDismiss,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -255,6 +255,13 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               actions: [
+                if (canDismiss)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+                  ),
                 TextButton(
                   onPressed: () async {
                     final name = controller.text.trim();
@@ -315,14 +322,30 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  headline,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF5C6692),
-                    fontWeight: FontWeight.w900,
-                    height: 1.2,
-                    fontSize: 34,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap:
+                        _userName != null && _userName!.isNotEmpty
+                            ? () => _showNameDialog(canDismiss: true)
+                            : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        headline,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: const Color(0xFF5C6692),
+                          fontWeight: FontWeight.w900,
+                          height: 1.2,
+                          fontSize: 34,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
