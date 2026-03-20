@@ -295,7 +295,7 @@ class AppStrings {
   String get choiceResultHeadline {
     if (isKorean) return '세가지의 선택을 비교해보세요';
     if (isJapanese) return '3つの選択を比べてください。';
-    return 'Compare the flow of three choices';
+    return 'The flow of three choices';
   }
 
   String cardLabel(String cardName) {
