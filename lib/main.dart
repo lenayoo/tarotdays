@@ -24,7 +24,6 @@ class _UserProfile {
 class _AppStorage {
   static const _userNameKey = 'user_name';
   static const _dailyLimitPerSection = 2;
-  static const _disableDailyLimitForTesting = true;
 
   static Future<_UserProfile> loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,18 +37,12 @@ class _AppStorage {
   }
 
   static Future<bool> canUseReading(ReadingType type) async {
-    if (_disableDailyLimitForTesting) {
-      return true;
-    }
     final prefs = await SharedPreferences.getInstance();
     final count = prefs.getInt(_dailyKey(type, _todayKey())) ?? 0;
     return count < _dailyLimitPerSection;
   }
 
   static Future<void> consumeReading(ReadingType type) async {
-    if (_disableDailyLimitForTesting) {
-      return;
-    }
     final prefs = await SharedPreferences.getInstance();
     final key = _dailyKey(type, _todayKey());
     final count = prefs.getInt(key) ?? 0;
@@ -115,6 +108,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Tarot Days',
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -176,7 +170,15 @@ class _HomePageState extends State<HomePage> {
   String? _userName;
   bool _nameDialogOpened = false;
 
-  void _openPage(BuildContext context, ReadingType type) {
+  Future<void> _openPage(BuildContext context, ReadingType type) async {
+    final canUse = await _AppStorage.canUseReading(type);
+    if (!context.mounted) {
+      return;
+    }
+    if (!canUse) {
+      await _showDailyLimitDialog(context, type);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ReadingPage(type: type)),
@@ -649,7 +651,15 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
     });
   }
 
-  void _resetToFirstStep() {
+  Future<void> _resetToFirstStep() async {
+    final canUse = await _AppStorage.canUseReading(ReadingType.directAnswer);
+    if (!mounted) {
+      return;
+    }
+    if (!canUse) {
+      await _showDailyLimitDialog(context, ReadingType.directAnswer);
+      return;
+    }
     setState(() {
       _isResultVisible = false;
       _isDrawing = false;
@@ -871,6 +881,23 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
     });
   }
 
+  Future<void> _resetFlowReading() async {
+    final canUse = await _AppStorage.canUseReading(ReadingType.flow);
+    if (!mounted) {
+      return;
+    }
+    if (!canUse) {
+      await _showDailyLimitDialog(context, ReadingType.flow);
+      return;
+    }
+
+    setState(() {
+      _selectedCard = null;
+      _isDrawing = false;
+      _isResultVisible = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
@@ -953,13 +980,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedCard = null;
-                    _isDrawing = false;
-                    _isResultVisible = false;
-                  });
-                },
+                onPressed: _resetFlowReading,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFE6F2),
                   foregroundColor: const Color(0xFF6F3556),
@@ -1451,6 +1472,23 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
     });
   }
 
+  Future<void> _resetChoiceReading() async {
+    final canUse = await _AppStorage.canUseReading(ReadingType.choice);
+    if (!mounted) {
+      return;
+    }
+    if (!canUse) {
+      await _showDailyLimitDialog(context, ReadingType.choice);
+      return;
+    }
+
+    setState(() {
+      _selectedCardIndices.clear();
+      _isDrawing = false;
+      _isResultVisible = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
@@ -1526,13 +1564,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedCardIndices.clear();
-                    _isDrawing = false;
-                    _isResultVisible = false;
-                  });
-                },
+                onPressed: _resetChoiceReading,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEEF1FF),
                   foregroundColor: const Color(0xFF46558D),

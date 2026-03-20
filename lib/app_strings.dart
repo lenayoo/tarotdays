@@ -76,12 +76,6 @@ class AppStrings {
     return 'Tell me your name';
   }
 
-  String get namePromptDescription {
-    if (isKorean) return '앞으로 리딩 화면에서 이 이름으로 불러드릴게요.';
-    if (isJapanese) return 'これからのリーディング画面では、このお名前でお呼びします。';
-    return 'I will use this name in your readings from now on.';
-  }
-
   String get nameFieldHint {
     if (isKorean) return '이름';
     if (isJapanese) return 'お名前';
@@ -134,11 +128,7 @@ class AppStrings {
     return 'Choice Comparison';
   }
 
-  String get choiceMenuSubtitle {
-    if (isKorean) return '세 가지 선택';
-    if (isJapanese) return '3つの選択';
-    return 'Three Choices';
-  }
+  String get choiceMenuSubtitle => 'Three Choices';
 
   String get choiceMenuDescription {
     if (isKorean) return '세 방향의 흐름을 비교해 더 맞는 선택을 봅니다.';
@@ -177,15 +167,9 @@ class AppStrings {
   }
 
   String get directResultHeadline {
-    if (isKorean) return 'YES / NO의 결을 비교해보세요';
-    if (isJapanese) return 'YES / NO の流れを比べてみましょう';
-    return 'Compare the YES / NO paths';
-  }
-
-  String get directMoodLabel {
-    if (isKorean) return '장밋빛 안개 · 부드러운 세이지의 대비';
-    if (isJapanese) return 'ローズの靄 · やわらかなセージの対比';
-    return 'rose haze · soft sage contrast';
+    if (isKorean) return '어떤 것을 선택하시겠어요?';
+    if (isJapanese) return 'どれを選びますか？';
+    return 'Which will you choose?';
   }
 
   String get directYesCaseTitle {
@@ -277,9 +261,9 @@ class AppStrings {
   }
 
   String get choicePickPrompt {
-    if (isKorean) return '세 갈래 흐름 중 더 끌리는 방향을 골라주세요.';
-    if (isJapanese) return '3つの流れの中から、より惹かれる方向を選んでください。';
-    return 'Choose the direction that pulls you most among the three paths.';
+    if (isKorean) return '세가지 선택을 생각하며 타로 카드를 하나씩 뽑아주세요.';
+    if (isJapanese) return '3つの選択を思い浮かべながら、カードを1枚ずつ引いてください。';
+    return 'Think about three choices and draw one card for each.';
   }
 
   String choicePickProgress(int selectedCount) {
