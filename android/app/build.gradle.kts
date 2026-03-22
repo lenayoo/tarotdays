@@ -1,5 +1,6 @@
 import java.util.Properties
 import java.io.FileInputStream
+import org.gradle.api.tasks.bundling.Zip
 
 plugins {
     id("com.android.application")
@@ -51,6 +52,10 @@ android {
 
     buildTypes {
         release {
+            ndk {
+                // Include full native debug metadata so Play Console can symbolicate crashes/ANRs.
+                debugSymbolLevel = "FULL"
+            }
             // 3. 위에서 만든 release 설정을 실제 빌드에 적용
             signingConfig = signingConfigs.getByName("release")
         }
@@ -59,4 +64,22 @@ android {
 
 flutter {
     source = "../.."
+}
+
+val releaseNativeLibsDir = layout.buildDirectory.dir(
+    "intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib"
+)
+
+val zipReleaseNativeSymbols by tasks.registering(Zip::class) {
+    dependsOn("mergeReleaseNativeLibs")
+    from(releaseNativeLibsDir)
+    destinationDirectory.set(layout.buildDirectory.dir("outputs/native-debug-symbols/release"))
+    archiveFileName.set("native-debug-symbols.zip")
+    includeEmptyDirs = false
+}
+
+afterEvaluate {
+    tasks.named("bundleRelease") {
+        finalizedBy(zipReleaseNativeSymbols)
+    }
 }
