@@ -309,93 +309,99 @@ class _HomePageState extends State<HomePage> {
         showBackButton: false,
         topContentOffset: 0,
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 8, 22, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'TAROT DAYS',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFF7F88B6),
-                    letterSpacing: 2.4,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap:
-                        _userName != null && _userName!.isNotEmpty
-                            ? () => _showNameDialog(canDismiss: true)
-                            : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        headline,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(22, 8, 22, 18),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight - 26),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'TAROT DAYS',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: const Color(0xFF5C6692),
-                          fontWeight: FontWeight.w900,
-                          height: 1.2,
-                          fontSize: 34,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: const Color(0xFF7F88B6),
+                          letterSpacing: 2.4,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap:
+                              _userName != null && _userName!.isNotEmpty
+                                  ? () => _showNameDialog(canDismiss: true)
+                                  : null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              headline,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: const Color(0xFF5C6692),
+                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                                fontSize: 34,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        strings.homeDescription,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF8F98B4),
+                          height: 1.45,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _HomeReadingCard(
+                        indexLabel: '01',
+                        title: strings.directAnswerMenuTitle,
+                        subtitle: strings.directAnswerMenuSubtitle,
+                        description: strings.directAnswerMenuDescription,
+                        accentColor: const Color(0xFF7D8EDD),
+                        panelColor: const Color(0xFFFCFEFF),
+                        artAssetPath: 'assets/imgs/taro_back_1.webp',
+                        onTap: () => _openPage(context, ReadingType.directAnswer),
+                      ),
+                      const SizedBox(height: 12),
+                      _HomeReadingCard(
+                        indexLabel: '02',
+                        title: strings.flowMenuTitle,
+                        subtitle: strings.flowMenuSubtitle,
+                        description: strings.flowMenuDescription,
+                        accentColor: const Color(0xFF7A89C8),
+                        panelColor: const Color(0xFFFBFDFF),
+                        artAssetPath: 'assets/imgs/taro_back_2.webp',
+                        onTap: () => _openPage(context, ReadingType.flow),
+                      ),
+                      const SizedBox(height: 12),
+                      _HomeReadingCard(
+                        indexLabel: '03',
+                        title: strings.choiceMenuTitle,
+                        subtitle: strings.choiceMenuSubtitle,
+                        description: strings.choiceMenuDescription,
+                        accentColor: const Color(0xFF6A82D9),
+                        panelColor: const Color(0xFFF9FCFF),
+                        artAssetPath: 'assets/imgs/taro_back_3.webp',
+                        onTap: () => _openPage(context, ReadingType.choice),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  strings.homeDescription,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF8F98B4),
-                    height: 1.45,
-                    fontSize: 18,
-                  ),
-                ),
-                const Spacer(flex: 2),
-                _HomeReadingCard(
-                  indexLabel: '01',
-                  title: strings.directAnswerMenuTitle,
-                  subtitle: strings.directAnswerMenuSubtitle,
-                  description: strings.directAnswerMenuDescription,
-                  accentColor: const Color(0xFF7D8EDD),
-                  panelColor: const Color(0xFFFCFEFF),
-                  artAssetPath: 'assets/imgs/taro_back_1.webp',
-                  onTap: () => _openPage(context, ReadingType.directAnswer),
-                ),
-                const SizedBox(height: 12),
-                _HomeReadingCard(
-                  indexLabel: '02',
-                  title: strings.flowMenuTitle,
-                  subtitle: strings.flowMenuSubtitle,
-                  description: strings.flowMenuDescription,
-                  accentColor: const Color(0xFF7A89C8),
-                  panelColor: const Color(0xFFFBFDFF),
-                  artAssetPath: 'assets/imgs/taro_back_2.webp',
-                  onTap: () => _openPage(context, ReadingType.flow),
-                ),
-                const SizedBox(height: 12),
-                _HomeReadingCard(
-                  indexLabel: '03',
-                  title: strings.choiceMenuTitle,
-                  subtitle: strings.choiceMenuSubtitle,
-                  description: strings.choiceMenuDescription,
-                  accentColor: const Color(0xFF6A82D9),
-                  panelColor: const Color(0xFFF9FCFF),
-                  artAssetPath: 'assets/imgs/taro_back_3.webp',
-                  onTap: () => _openPage(context, ReadingType.choice),
-                ),
-                const Spacer(flex: 3),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -670,6 +676,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     if (widget.cards.length < 2) {
       return _ErrorPage(message: strings.cardDataNotFound);
     }
@@ -715,7 +722,7 @@ class _DirectAnswerPageState extends State<DirectAnswerPage> {
         headerTitle: strings.directResultHeadline,
         headerTitleColor: const Color(0xFF6E3E55),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + bottomInset + 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -902,6 +909,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final card = _selectedCard;
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     if (card == null) {
       if (_isResultVisible) {
         return _ErrorPage(message: strings.drawCardFailed);
@@ -939,7 +947,7 @@ class _FlowReadingPageState extends State<FlowReadingPage> {
         headerTitle: card!.name,
         headerTitleColor: const Color(0xFF6F3556),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + bottomInset + 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -1492,6 +1500,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     if (widget.cards.length < 3) {
       return _ErrorPage(message: strings.choiceError);
     }
@@ -1542,7 +1551,7 @@ class _ChoiceReadingPageState extends State<ChoiceReadingPage> {
         headerTitle: strings.choiceResultHeadline,
         headerTitleColor: const Color(0xFF46558D),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + bottomInset + 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
